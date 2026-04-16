@@ -1,6 +1,6 @@
 <x-guest-layout>
     <div class="mb-10">
-        <h2 class="font-outfit text-3xl text-brand-blue mb-2">Log <span class="text-brand-red">In</span></h2>
+        <h2 class="text-3xl font-extrabold text-brand-blue mb-2">Log <span class="text-brand-red">In</span></h2>
         <p class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Akses Layanan Premium KosKora</p>
     </div>
 

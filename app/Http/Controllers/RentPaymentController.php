@@ -184,9 +184,30 @@ class RentPaymentController extends Controller
             return redirect()->back()->with('error', 'Hanya pembayaran berstatus pending yang dapat diverifikasi.');
         }
 
-        $rentPayment->update(['status' => 'paid']);
+        $rentPayment->update(['status' => 'paid', 'rejection_reason' => null]);
 
         return redirect()->route('rent-payments.index')->with('success', 'Pembayaran berhasil diverifikasi.');
+    }
+
+    /**
+     * Reject the payment.
+     */
+    public function reject(Request $request, RentPayment $rentPayment)
+    {
+        $request->validate([
+            'rejection_reason' => 'required|string|max:255',
+        ]);
+
+        if ($rentPayment->status !== 'pending') {
+            return redirect()->back()->with('error', 'Hanya pembayaran berstatus pending yang dapat ditolak.');
+        }
+
+        $rentPayment->update([
+            'status' => 'unpaid',
+            'rejection_reason' => $request->rejection_reason
+        ]);
+
+        return redirect()->route('rent-payments.index')->with('success', 'Pembayaran telah ditolak dan alasan telah dikirim ke penyewa.');
     }
 
     /**

@@ -3,111 +3,143 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tiket Masuk Digital - KosKora</title>
+    <title>Digital Receipt & Pass - KosKora</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .ticket-card {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.25), 0 30px 60px -30px rgba(0, 0, 0, 0.3);
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc;
         }
-        .ticket-border {
-            border-style: dashed;
-            border-width: 2px;
-            border-color: rgba(255, 255, 255, 0.1);
+        .receipt-card {
+            background: #ffffff;
+            position: relative;
+            filter: drop-shadow(0 20px 50px rgba(0, 0, 0, 0.05));
         }
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .punch-hole {
-            width: 30px;
-            height: 30px;
-            background: #f8fafc; /* Match body bg */
-            border-radius: 50%;
+        .receipt-card::after {
+            content: "";
             position: absolute;
-            z-index: 20;
+            bottom: -10px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background-image: radial-gradient(circle at 10px -5px, transparent 12px, white 13px);
+            background-size: 20px 20px;
+        }
+        .qr-container {
+            background: linear-gradient(135deg, #f1f5f9 0%, #ffffff 100%);
+            border: 1px solid #e2e8f0;
+        }
+        @media print {
+            .no-print { display: none; }
+            body { background: white; padding: 0; }
+            .receipt-card { filter: none; border: 1px solid #e2e8f0; }
+        }
+        .status-badge {
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
         }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-6 sm:p-12">
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-8">
 
-    <div class="relative w-full max-w-md">
-        <!-- Ticket Container -->
-        <div class="ticket-card rounded-[2.5rem] overflow-hidden relative text-white">
+    <div class="w-full max-w-lg">
+        <!-- Main Receipt Card -->
+        <div class="receipt-card rounded-t-3xl overflow-hidden">
             
-            <!-- Punch Holes (Decorative) -->
-            <div class="punch-hole -left-[15px] top-1/2 -translate-y-1/2 shadow-inner"></div>
-            <div class="punch-hole -right-[15px] top-1/2 -translate-y-1/2 shadow-inner"></div>
-
-            <!-- Header -->
-            <div class="p-8 pt-10 text-center border-b-4 border-rose-600 bg-black/20">
-                <div class="flex justify-center mb-6">
-                    <img src="{{ asset('koskora.png') }}" alt="Logo" class="h-10 w-auto">
+            <!-- Strategic Header -->
+            <div class="p-8 pb-4 flex items-center justify-between border-b border-slate-50">
+                <div>
+                    <img src="{{ asset('koskora.png') }}" alt="KosKora Logo" class="h-8 w-auto mb-2">
+                    <h1 class="text-[10px] font-black tracking-widest text-slate-400 uppercase">Official Digital Receipt</h1>
                 </div>
-                <h1 class="text-xs font-black tracking-[0.3em] uppercase opacity-60">PASS DIGITAL MASUK</h1>
-                <div class="mt-2 text-2xl font-black italic tracking-tighter">PREMIUM TENANT</div>
+                <div class="text-right">
+                    <span class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-full border border-emerald-100 status-badge">
+                        Success / Verified
+                    </span>
+                </div>
             </div>
 
-            <!-- Body / QR Code -->
-            <div class="p-8 pb-10 flex flex-col items-center">
-                <div class="p-4 bg-white rounded-3xl mb-8 shadow-2xl relative">
-                    <div class="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 rounded-full border-4 border-[#0f172a]"></div>
+            <!-- Receipt Content -->
+            <div class="p-8">
+                <!-- High Priority Info -->
+                <div class="flex flex-col items-center mb-8">
                     @php
                         $qrData = route('rent-payments.ticket', $rentPayment->id);
-                        $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . urlencode($qrData);
+                        $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($qrData);
                     @endphp
-                    <img src="{{ $qrUrl }}" alt="QR Verification" class="w-48 h-48">
+                    <div class="qr-container p-6 rounded-[2rem] shadow-inner mb-6 relative">
+                        <div class="absolute -top-1 -right-1 w-6 h-6 bg-brand-blue rounded-full border-4 border-white"></div>
+                        <img src="{{ $qrUrl }}" alt="QR Code" class="w-40 h-40 opacity-90">
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tighter">Premium Entry Pass</h2>
+                    <p class="text-xs font-medium text-slate-400 mt-1">Scan at digital lobby or show to staff</p>
                 </div>
-                
-                <div class="space-y-1 text-center">
-                    <p class="text-[10px] font-black uppercase tracking-widest opacity-40">Status Pembayaran</p>
-                    <div class="px-4 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full border border-emerald-500/30">
-                        VERIFIED / PAID
+
+                <!-- Transaction Details -->
+                <div class="space-y-6 pt-6 border-t border-slate-100">
+                    <div class="grid grid-cols-2 gap-8">
+                        <div>
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tenant Name</p>
+                            <p class="text-sm font-bold text-slate-800">{{ $rentPayment->tenants->user->name }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Unit Number</p>
+                            <span class="inline-flex items-center px-2 py-1 bg-slate-100 text-slate-700 text-xs font-black rounded-lg">
+                                Room {{ $rentPayment->room->room_number }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-8">
+                        <div>
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Billing Period</p>
+                            <p class="text-sm font-bold text-slate-800">{{ $rentPayment->month }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Amount Paid</p>
+                            <p class="text-sm font-black text-brand-blue">Rp {{ number_format($rentPayment->amount, 0, ',', '.') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-8">
+                        <div>
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Transaction ID</p>
+                            <p class="text-[10px] font-mono font-bold text-slate-500 italic">#{{ str_pad($rentPayment->id, 10, '0', STR_PAD_LEFT) }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Payment Date</p>
+                            <p class="text-sm font-bold text-slate-800">{{ \Carbon\Carbon::parse($rentPayment->payment_date)->format('d M Y') }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Footer Details -->
-            <div class="p-8 pt-0 grid grid-cols-2 gap-x-8 gap-y-6">
-                <div class="space-y-1 border-l-2 border-rose-500 pl-4">
-                    <p class="text-[10px] font-bold uppercase tracking-widest opacity-40 text-rose-400">Penghuni</p>
-                    <p class="text-sm font-black truncate">{{ $rentPayment->tenants->user->name }}</p>
+            <!-- Security Footer -->
+            <div class="p-8 py-6 bg-slate-50 border-t border-slate-100 text-center">
+                <div class="flex items-center justify-center space-x-2 mb-3">
+                    <svg class="w-3 h-3 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.9L10 .303l7.834 4.597v10.2L10 19.697l-7.834-4.597V4.9zm13.668 1.95L10 3.12 4.166 6.53v8.324L10 17.182l5.834-2.328V6.85zM6.666 9.666L5 11.333 8.333 14.666l6.667-6.666-1.667-1.667L8.333 11.332 6.666 9.666z" clip-rule="evenodd"></path></svg>
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Digitally Signed & Verified</span>
                 </div>
-                <div class="space-y-1 border-l-2 border-blue-500 pl-4">
-                    <p class="text-[10px] font-bold uppercase tracking-widest opacity-40 text-blue-400">Nomor Kamar</p>
-                    <p class="text-lg font-black leading-none">{{ $rentPayment->room->room_number }}</p>
-                </div>
-                <div class="space-y-1 border-l-2 border-blue-500 pl-4">
-                    <p class="text-[10px] font-bold uppercase tracking-widest opacity-40 text-blue-400">Periode</p>
-                    <p class="text-sm font-black">{{ $rentPayment->month }}</p>
-                </div>
-                <div class="space-y-1 border-l-2 border-rose-500 pl-4">
-                    <p class="text-[10px] font-bold uppercase tracking-widest opacity-40 text-rose-400">ID Tiket</p>
-                    <p class="text-[10px] font-mono opacity-60">#{{ str_pad($rentPayment->id, 8, '0', STR_PAD_LEFT) }}</p>
-                </div>
-            </div>
-
-            <!-- Disclaimer -->
-            <div class="p-8 py-6 bg-black/40 text-center">
-                <p class="text-[8px] font-medium text-slate-400 uppercase tracking-widest leading-relaxed">
-                    Tiket ini berlaku selama periode sewa bulan bersangkutan.<br>
-                    Tunjukkan tiket ini kepada petugas keamanan atau scan pada akses pintu digital.
+                <p class="text-[8px] font-medium text-slate-400 leading-relaxed uppercase tracking-tighter">
+                    This receipt is system-generated and does not require a physical signature.<br>
+                    Authenticity can be verified by scanning the QR code above.
                 </p>
             </div>
         </div>
 
-        <!-- Print Action -->
-        <div class="mt-8 flex justify-center no-print">
-            <button onclick="window.print()" class="px-8 py-3 bg-white text-slate-800 rounded-2xl font-black text-xs shadow-lg hover:shadow-xl transition-all flex items-center space-x-2 border border-slate-200">
+        <!-- Print/Download Actions -->
+        <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 no-print">
+            <button onclick="window.print()" class="w-full sm:w-auto px-8 py-3 bg-white text-slate-800 rounded-2xl font-black text-[10px] shadow-sm hover:shadow-md transition-all flex items-center justify-center space-x-2 border border-slate-200 uppercase tracking-widest">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                <span>Cetak / Simpan PDF</span>
+                <span>Print Receipt</span>
             </button>
+            <a href="{{ route('dashboard') }}" class="w-full sm:w-auto px-10 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] shadow-xl hover:bg-slate-800 transition-all text-center uppercase tracking-widest">
+                Back to Dashboard
+            </a>
         </div>
     </div>
 

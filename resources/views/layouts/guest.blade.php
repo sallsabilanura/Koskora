@@ -6,11 +6,12 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'KosKora') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -29,7 +30,6 @@
         </script>
         <style>
             body { font-family: 'Inter', sans-serif; }
-            .font-outfit { font-family: 'Outfit', sans-serif; }
             .brand-solid {
                 background-color: #1e1b9b;
             }
@@ -50,7 +50,7 @@
                 </div>
 
                 <div class="relative z-10">
-                    <h1 class="font-outfit text-5xl lg:text-7xl text-white leading-[1.1] mb-8">
+                    <h1 class="text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] mb-8">
                         Modern.<br>
                         Visual.<br>
                         <span class="text-white/60">Kos</span><span class="text-brand-red">K</span><span class="text-white/60">ora.</span>

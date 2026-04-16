@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>KosKora | Hunian Premium, Terintegrasi & Modern</title>
+    <title>KosKora | Premium Living Redefined</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <!-- Google Fonts: System & Modern Weights -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Tailwind CSS + Custom Config -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -19,8 +20,7 @@
                         }
                     },
                     fontFamily: {
-                        manrope: ['Manrope', 'sans-serif'],
-                        inter: ['Inter', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
                     }
                 }
             }
@@ -29,7 +29,7 @@
     <style>
         /* custom overrides & key brand behavior */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; scroll-behavior: smooth; background: #ffffff; }
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; background: #ffffff; -webkit-font-smoothing: antialiased; }
 
         /* Brand-centric utilities */
         .brand-gradient-bg { background: linear-gradient(135deg, #1e1b9b 0%, #11106e 100%); }
@@ -59,12 +59,12 @@
 <body class="antialiased text-slate-800 overflow-x-hidden">
 
     <!-- ========== NAVIGATION ========== -->
-    <nav class="glass-nav fixed top-0 w-full z-50 py-5 px-6 md:px-10 transition-all duration-300">
+    <nav class="glass-nav fixed top-0 w-full z-50 py-4 md:py-5 px-4 md:px-10 transition-all duration-300">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <!-- Logo + Branding -->
             <div class="flex items-center gap-3">
                 <a href="/">
-                    <img src="{{ asset('koskora.png') }}" alt="KosKora Logo" class="h-9 w-auto md:h-10">
+                    <img src="{{ asset('koskora.png') }}" alt="KosKora Logo" class="h-8 w-auto md:h-10">
                 </a>
                 <span class="text-[10px] font-bold tracking-[0.2em] text-slate-400 hidden sm:block border-l border-slate-200 pl-3 uppercase">Premium Living</span>
             </div>
@@ -78,20 +78,37 @@
             <div class="flex items-center gap-3">
                 @if (Route::has('login'))
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="px-6 py-2.5 bg-brand-navy text-white text-[11px] font-bold rounded-full shadow-md hover:bg-brand-red transition-all duration-200 uppercase tracking-wide">Dashboard</a>
+                        <a href="{{ url('/dashboard') }}" class="px-5 md:px-6 py-2 md:py-2.5 bg-brand-navy text-white text-[11px] font-bold rounded-full shadow-md hover:bg-brand-red transition-all duration-200 uppercase tracking-wide">Dashboard</a>
                     @else
                         <a href="{{ route('login') }}" class="hidden sm:inline-block text-[11px] font-bold text-slate-500 hover:text-brand-navy transition uppercase tracking-wider">Masuk</a>
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="px-6 py-2.5 bg-brand-navy text-white text-[11px] font-bold rounded-full shadow-md hover:bg-brand-red transition-all duration-200 uppercase tracking-wide font-manrope">Join Pro</a>
+                            <a href="{{ route('register') }}" class="px-5 md:px-6 py-2 md:py-2.5 bg-brand-navy text-white text-[11px] font-bold rounded-full shadow-md hover:bg-brand-red transition-all duration-200 uppercase tracking-wide">Join Pro</a>
                         @endif
                     @endauth
                 @endif
+
+                <!-- Mobile hamburger -->
+                <button onclick="document.getElementById('mobileNav').classList.toggle('hidden')" class="md:hidden p-2 rounded-xl hover:bg-slate-100 transition" aria-label="Menu">
+                    <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Nav Drawer -->
+        <div id="mobileNav" class="hidden md:hidden mt-4 pb-2 border-t border-slate-100 pt-4">
+            <div class="flex flex-col gap-3">
+                <a href="#katalog" class="text-sm font-semibold text-slate-600 hover:text-brand-navy py-2">Katalog</a>
+                <a href="#layanan" class="text-sm font-semibold text-slate-600 hover:text-brand-navy py-2">Layanan</a>
+                <a href="#tentang" class="text-sm font-semibold text-slate-600 hover:text-brand-navy py-2">Tentang</a>
+                @guest
+                    <a href="{{ route('login') }}" class="text-sm font-semibold text-brand-navy py-2">Masuk</a>
+                @endguest
             </div>
         </div>
     </nav>
 
     <!-- ========== HERO SECTION ========== -->
-    <section class="relative pt-32 pb-24 px-6 overflow-hidden">
+    <section class="relative pt-24 md:pt-32 pb-16 md:pb-24 px-4 md:px-6 overflow-hidden">
         <!-- Background Image with Overlay & Blur -->
         <div class="absolute inset-0 z-0">
             <img src="{{ asset('hero-bg.png') }}" class="w-full h-full object-cover opacity-90 scale-105 transform">
@@ -111,40 +128,40 @@
                     Premium Ecosystem
                 </span>
             </div>
-            <h1 class="font-manrope text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] text-brand-navy max-w-4xl mx-auto drop-shadow-[0_10px_10px_rgba(255,255,255,0.8)]">
+            <h1 class="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] text-brand-navy max-w-4xl mx-auto drop-shadow-[0_10px_10px_rgba(255,255,255,0.8)]">
                 Hunian Berkelas.<br>
                 <span class="text-brand-red bg-clip-text">Pengelolaan Tanpa Ribet.</span>
             </h1>
-            <p class="text-slate-700 text-sm md:text-lg max-w-2xl mx-auto mt-8 font-semibold leading-relaxed drop-shadow-sm">
-                Manajemen kos profesional & teknologi cerdas. <span class="text-brand-navy/60 font-medium">Nikmati kemudahan cari kamar, laundry, dan cleaner terverifikasi dalam satu genggaman.</span>
+            <p class="text-slate-700 text-xs md:text-lg max-w-2xl mx-auto mt-5 md:mt-8 font-semibold leading-relaxed drop-shadow-sm">
+                Manajemen kos profesional & teknologi cerdas. <span class="text-brand-navy/60 font-medium hidden sm:inline">Nikmati kemudahan cari kamar, laundry, dan cleaner terverifikasi dalam satu genggaman.</span>
             </p>
             
             <!-- Search Console -->
-            <div class="max-w-4xl mx-auto mt-8 bg-white/90 backdrop-blur-sm rounded-2xl brand-shadow p-2.5 border border-slate-100">
+            <div class="max-w-4xl mx-auto mt-6 md:mt-8 bg-white/90 backdrop-blur-sm rounded-2xl brand-shadow p-2 md:p-2.5 border border-slate-100">
                 <form action="{{ route('home') }}" method="GET" class="flex flex-col md:flex-row gap-2">
                     <div class="flex-[2] relative">
                         <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari area, tipe kamar, atau fasilitas..." class="w-full pl-12 pr-4 py-4 rounded-xl input-modern font-medium text-sm">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari area, tipe..." class="w-full pl-12 pr-4 py-3.5 md:py-4 rounded-xl input-modern font-medium text-sm">
                     </div>
                     <div class="flex-1">
-                        <select name="city" class="w-full px-5 py-4 rounded-xl input-modern font-medium text-sm cursor-pointer appearance-none">
+                        <select name="city" class="w-full px-5 py-3.5 md:py-4 rounded-xl input-modern font-medium text-sm cursor-pointer appearance-none">
                             <option value="">Semua Kota</option>
                             @foreach($cities as $city)
                                 <option value="{{ $city }}" {{ request('city') == $city ? 'selected' : '' }}>{{ $city }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <button type="submit" class="md:w-auto px-10 py-4 bg-brand-navy text-white rounded-xl font-bold text-sm uppercase tracking-wider hover:bg-brand-red transition-all shadow-md">Jelajahi</button>
+                    <button type="submit" class="w-full md:w-auto px-8 md:px-10 py-3.5 md:py-4 bg-brand-navy text-white rounded-xl font-bold text-sm uppercase tracking-wider hover:bg-brand-red transition-all shadow-md">Jelajahi</button>
                 </form>
             </div>
             
             <!-- quick stats -->
             <div class="flex flex-wrap justify-center gap-8 mt-14">
-                <div><span class="font-black text-2xl text-brand-navy">150+</span><span class="text-xs font-semibold text-slate-400 block uppercase">Unit Premium</span></div>
-                <div><span class="font-black text-2xl text-brand-navy">12</span><span class="text-xs font-semibold text-slate-400 block uppercase">Kota Besar</span></div>
-                <div><span class="font-black text-2xl text-brand-navy">99%</span><span class="text-xs font-semibold text-slate-400 block uppercase">Kepuasan Tenant</span></div>
+                <div><span class="font-extrabold text-2xl text-brand-navy">150+</span><span class="text-xs font-semibold text-slate-400 block uppercase">Unit Premium</span></div>
+                <div><span class="font-extrabold text-2xl text-brand-navy">12</span><span class="text-xs font-semibold text-slate-400 block uppercase">Kota Besar</span></div>
+                <div><span class="font-extrabold text-2xl text-brand-navy">99%</span><span class="text-xs font-semibold text-slate-400 block uppercase">Kepuasan Tenant</span></div>
             </div>
         </div>
     </section>
@@ -155,7 +172,7 @@
             <div class="flex flex-wrap justify-between items-end gap-6 mb-12">
                 <div>
                     <span class="text-[11px] font-black text-brand-red uppercase tracking-[0.3em]">Koleksi eksklusif</span>
-                    <h2 class="font-manrope text-4xl md:text-5xl font-bold text-[#0F0C2F] mt-3">Rekomendasi Kamar<span class="text-slate-300">.</span></h2>
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 mt-3">Rekomendasi Kamar<span class="text-slate-300">.</span></h2>
                     <p class="text-slate-400 text-sm max-w-lg mt-2">Unit terbaik dengan standar kebersihan & keamanan tinggi.</p>
                 </div>
                 <a href="#katalog" class="text-[12px] font-bold uppercase tracking-wider text-brand-navy border-b border-brand-navy pb-1 hover:text-brand-red transition">Lihat semua →</a>
@@ -173,14 +190,14 @@
                                 </div>
                             @endif
                             <div class="absolute top-4 left-4 flex gap-2">
-                                <span class="bg-brand-navy text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-md uppercase">{{ $room->room_type }}</span>
-                                <span class="px-3 py-1.5 {{ $room->status == 'available' ? 'bg-emerald-500' : 'bg-brand-red' }} text-white text-[10px] font-black rounded-full shadow-md uppercase">{{ $room->status == 'available' ? 'Ready' : 'Full' }}</span>
+                                <span class="bg-brand-navy text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-md uppercase">{{ $room->room_type }}</span>
+                                <span class="px-3 py-1.5 {{ $room->status == 'available' ? 'bg-emerald-500' : 'bg-brand-red' }} text-white text-[10px] font-bold rounded-full shadow-md uppercase">{{ $room->status == 'available' ? 'Ready' : 'Full' }}</span>
                             </div>
                         </div>
                         <div class="p-6 flex-1 flex flex-col">
                             <div class="flex justify-between items-start">
-                                <h3 class="font-manrope text-2xl font-bold text-[#0F0C2F]">#{{ $room->room_number }}</h3>
-                                <span class="text-xl font-black text-brand-navy">Rp {{ number_format($room->price / 1000, 1, '.', '') }}jt<span class="text-sm text-slate-400 font-normal">/bln</span></span>
+                                <h3 class="text-2xl font-extrabold text-slate-900">#{{ $room->room_number }}</h3>
+                                <span class="text-xl font-extrabold text-brand-navy">Rp {{ number_format($room->price / 1000, 1, '.', '') }}jt<span class="text-sm text-slate-400 font-normal">/bln</span></span>
                             </div>
                             <div class="flex items-center gap-1 text-slate-400 text-xs mt-2 mb-4">
                                 <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
@@ -201,7 +218,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="col-span-full py-24 text-center text-slate-200 font-black italic uppercase tracking-[0.3em] border-2 border-dashed border-slate-50 rounded-2xl">
+                    <div class="col-span-full py-24 text-center text-slate-300 font-bold uppercase tracking-[0.2em] border-2 border-dashed border-slate-100 rounded-2xl">
                         Katalog sedang diperbarui.
                     </div>
                 @endforelse
@@ -214,8 +231,7 @@
     <section id="layanan" class="py-16 px-6 bg-slate-50/60 scroll-mt-24">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
-                <span class="text-[11px] font-black text-brand-red uppercase tracking-[0.3em]">Ekosistem Pintar</span>
-                <h2 class="font-manrope text-4xl md:text-5xl font-bold text-[#0F0C2F] mt-2">Nikmati kemudahan <span class="text-brand-navy">tanpa pindah aplikasi</span></h2>
+                <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 mt-2">Nikmati kemudahan <span class="text-brand-navy">tanpa pindah aplikasi</span></h2>
                 <p class="text-slate-500 max-w-2xl mx-auto mt-4">Laundry profesional & tenaga kebersihan terlatih — semua terintegrasi dengan akun KosKora anda.</p>
             </div>
             <div class="grid lg:grid-cols-2 gap-12">
@@ -223,7 +239,7 @@
                 <div class="bg-white rounded-2xl p-8 brand-shadow border border-slate-100 flex flex-col">
                     <div class="flex items-center gap-4 mb-8">
                         <div class="w-12 h-12 rounded-xl bg-brand-navy/10 flex items-center justify-center"><svg class="w-6 h-6 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-                        <h3 class="font-manrope text-2xl font-bold text-[#0F0C2F]">Laundry Partner</h3>
+                        <h3 class="text-2xl font-extrabold text-slate-900">Laundry Partner</h3>
                     </div>
                     <div class="space-y-4 flex-1">
                         @forelse($laundries as $laundry)
@@ -233,18 +249,18 @@
                                         @if($laundry->image)
                                             <img src="{{ asset('storage/' . $laundry->image) }}" class="w-full h-full object-cover">
                                         @else
-                                            <div class="w-full h-full flex items-center justify-center text-brand-navy/20 font-black text-xs">L</div>
+                                            <div class="w-full h-full flex items-center justify-center text-brand-navy/20 font-bold text-xs">L</div>
                                         @endif
                                     </div>
                                     <div>
-                                        <p class="font-bold text-[#0F0C2F] text-sm">{{ $laundry->name }}</p>
-                                        <p class="text-[9px] text-slate-400 uppercase tracking-wide truncate max-w-[150px]">{{ $laundry->address }}</p>
+                                        <p class="font-semibold text-slate-900 text-sm">{{ $laundry->name }}</p>
+                                        <p class="text-[10px] text-slate-400 uppercase tracking-wide truncate max-w-[150px]">{{ $laundry->address }}</p>
                                     </div>
                                 </div>
-                                <span class="text-[11px] font-black text-brand-navy">{{ $laundry->phone }}</span>
+                                <span class="text-[11px] font-bold text-brand-navy">{{ $laundry->phone }}</span>
                             </div>
                         @empty
-                            <p class="text-slate-300 font-bold italic text-sm">Belum ada partner terdaftar.</p>
+                            <p class="text-slate-400 font-medium text-sm">Belum ada partner terdaftar.</p>
                         @endforelse
                     </div>
                     @auth
@@ -257,7 +273,7 @@
                 <div class="bg-white rounded-2xl p-8 brand-shadow border border-slate-100 flex flex-col">
                     <div class="flex items-center gap-4 mb-8">
                         <div class="w-12 h-12 rounded-xl bg-brand-red/10 flex items-center justify-center"><svg class="w-6 h-6 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5.121 17.804A9 9 0 0112 3a9 9 0 017.879 14.804M15 10h.01M9 10h.01M12 21v-6"/></svg></div>
-                        <h3 class="font-manrope text-2xl font-bold text-[#0F0C2F]">Cleaner Professional</h3>
+                        <h3 class="text-2xl font-extrabold text-slate-900">Cleaner Professional</h3>
                     </div>
                     <div class="grid grid-cols-2 gap-4 flex-1">
                         @forelse($cleaners as $cleaner)
@@ -266,14 +282,14 @@
                                     @if($cleaner->photo)
                                         <img src="{{ asset('storage/' . $cleaner->photo) }}" class="w-full h-full object-cover">
                                     @else
-                                        <div class="w-full h-full flex items-center justify-center text-brand-red/20 font-black">C</div>
+                                        <div class="w-full h-full flex items-center justify-center text-brand-red/20 font-bold">C</div>
                                     @endif
                                 </div>
                                 <p class="font-bold text-sm text-brand-navy">{{ $cleaner->user->name }}</p>
-                                <span class="text-[8px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-tighter">Pro Verified</span>
+                                <span class="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase">Verified</span>
                             </div>
                         @empty
-                            <p class="col-span-2 text-slate-300 font-bold italic text-sm text-center py-8">Cleaner belum tersedia.</p>
+                            <p class="col-span-2 text-slate-400 font-medium text-sm text-center py-8">Cleaner belum tersedia.</p>
                         @endforelse
                     </div>
                     @auth
@@ -291,12 +307,12 @@
         <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-20">
             <div class="flex-1">
                 <span class="text-[11px] font-black text-brand-red uppercase tracking-[0.3em]">KosKora way</span>
-                <h2 class="font-manrope text-4xl md:text-5xl font-bold text-brand-navy mt-3 leading-tight">Bukan sekadar kos, <br>tapi <span class="text-brand-red">gaya hidup premium.</span></h2>
+                <h2 class="text-4xl md:text-5xl font-extrabold text-brand-navy mt-3 leading-tight">Bukan sekadar kos, <br>tapi <span class="text-brand-red">gaya hidup premium.</span></h2>
                 <p class="text-slate-500 mt-8 leading-relaxed font-medium">Kami menyatukan teknologi, kebersihan standar hotel, dan akses layanan instan. Setiap properti telah melalui kurasi desain, keamanan, dan konektivitas terbaik untuk profesional muda & ekspat.</p>
                 <div class="mt-10 flex flex-wrap gap-8">
-                    <div><span class="font-black text-3xl text-brand-navy">24/7</span><span class="block text-[10px] font-bold uppercase text-slate-400 mt-1">SLA Support</span></div>
-                    <div><span class="font-black text-3xl text-brand-navy">+45</span><span class="block text-[10px] font-bold uppercase text-slate-400 mt-1">Smart Units</span></div>
-                    <div><span class="font-black text-3xl text-brand-navy">4.9★</span><span class="block text-[10px] font-bold uppercase text-slate-400 mt-1">User Rating</span></div>
+                    <div><span class="font-extrabold text-3xl text-brand-navy">24/7</span><span class="block text-[10px] font-semibold uppercase text-slate-400 mt-1">SLA Support</span></div>
+                    <div><span class="font-extrabold text-3xl text-brand-navy">+45</span><span class="block text-[10px] font-semibold uppercase text-slate-400 mt-1">Smart Units</span></div>
+                    <div><span class="font-extrabold text-3xl text-brand-navy">4.9★</span><span class="block text-[10px] font-semibold uppercase text-slate-400 mt-1">User Rating</span></div>
                 </div>
                 <button class="mt-12 px-10 py-4 bg-brand-navy text-white rounded-full text-[12px] font-bold shadow-lg hover:bg-brand-red transition-all uppercase tracking-widest">Gabung Jadi Mitra</button>
             </div>
@@ -311,49 +327,49 @@
     
     <!-- ========== MODAL SECTION (RESTYLED) ========== -->
     <div id="roomModal" class="fixed inset-0 z-[200] hidden overflow-y-auto" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen px-4 py-12 text-center sm:block sm:p-0">
+        <div class="flex items-end sm:items-center justify-center min-h-screen px-0 sm:px-4 py-0 sm:py-12 text-center sm:block sm:p-0">
             <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="closeRoomModal()"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-            <div class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full relative border border-slate-100">
-                <button onclick="closeRoomModal()" class="absolute top-6 right-6 z-30 p-2.5 bg-slate-50 rounded-full text-brand-navy hover:bg-brand-red hover:text-white transition-all shadow-sm">
+            <div class="inline-block align-bottom bg-white rounded-t-3xl sm:rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl w-full sm:w-full relative border border-slate-100 max-h-[95vh] sm:max-h-none overflow-y-auto">
+                <button onclick="closeRoomModal()" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 p-2 sm:p-2.5 bg-slate-50 rounded-full text-brand-navy hover:bg-brand-red hover:text-white transition-all shadow-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
 
                 <div class="grid grid-cols-1 lg:grid-cols-5">
                     <!-- Gallery Area -->
-                    <div class="lg:col-span-2 bg-slate-50 p-6 space-y-4">
-                        <div class="aspect-square rounded-2xl overflow-hidden bg-white border border-slate-100 shadow-sm">
+                    <div class="lg:col-span-2 bg-slate-50 p-4 sm:p-6 space-y-3 sm:space-y-4">
+                        <div class="aspect-video sm:aspect-square rounded-xl sm:rounded-2xl overflow-hidden bg-white border border-slate-100 shadow-sm">
                             <img id="modalMainImg" src="" class="w-full h-full object-cover">
                         </div>
                         <div id="modalThumbnails" class="grid grid-cols-4 gap-2"></div>
                     </div>
 
                     <!-- Info Area -->
-                    <div class="lg:col-span-3 p-10 flex flex-col justify-between">
-                        <div class="space-y-8">
+                    <div class="lg:col-span-3 p-5 sm:p-10 flex flex-col justify-between">
+                        <div class="space-y-5 sm:space-y-8">
                             <div>
-                                <span id="modalType" class="px-4 py-1.5 bg-brand-navy/10 text-brand-navy text-[9px] font-black uppercase tracking-widest rounded-full mb-4 inline-block"></span>
-                                <h3 id="modalTitle" class="font-manrope text-4xl font-extrabold text-[#0F0C2F] tracking-tight"></h3>
+                                <span id="modalType" class="px-3 sm:px-4 py-1 sm:py-1.5 bg-brand-navy/10 text-brand-navy text-[9px] font-black uppercase tracking-widest rounded-full mb-3 sm:mb-4 inline-block"></span>
+                                <h3 id="modalTitle" class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight"></h3>
                             </div>
 
-                            <div class="text-4xl font-black text-brand-navy" id="modalPrice"></div>
+                            <div class="text-2xl sm:text-4xl font-extrabold text-brand-navy" id="modalPrice"></div>
 
-                            <div class="space-y-3">
+                            <div class="space-y-2 sm:space-y-3">
                                 <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Fasilitas & Detail</h4>
-                                <p id="modalDesc" class="text-slate-500 font-medium leading-relaxed italic text-sm"></p>
+                                <p id="modalDesc" class="text-slate-500 font-medium leading-relaxed text-xs sm:text-sm"></p>
                             </div>
 
-                            <div id="modalAddress" class="pt-6 flex items-center text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-50">
-                                <svg class="w-4 h-4 mr-2 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+                            <div id="modalAddress" class="pt-4 sm:pt-6 flex items-center text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-50">
+                                <svg class="w-4 h-4 mr-2 text-brand-red flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
                                 <span></span>
                             </div>
                         </div>
 
-                        <div class="pt-12">
+                        <div class="pt-6 sm:pt-12 pb-2">
                             <form id="modalForm" action="" method="POST">
                                 @csrf
-                                <button type="submit" id="modalSubmitBtn" class="w-full py-5 bg-brand-navy text-white rounded-2xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-brand-red transition-all shadow-xl shadow-blue-50">MULAI SEWA UNIT</button>
+                                <button type="submit" id="modalSubmitBtn" class="w-full py-4 sm:py-5 bg-brand-navy text-white rounded-xl sm:rounded-2xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-brand-red transition-all shadow-xl shadow-blue-50">MULAI SEWA UNIT</button>
                             </form>
                         </div>
                     </div>

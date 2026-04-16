@@ -17,6 +17,7 @@ class RentPayment extends Model
         'status',
         'method',
         'payment_proof',
+        'rejection_reason',
     ];
 
     public function rental()

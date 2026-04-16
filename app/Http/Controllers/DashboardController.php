@@ -26,6 +26,8 @@ class DashboardController extends Controller
                 ->orderBy('payment_date', 'desc')
                 ->limit(5)
                 ->get();
+            
+            $announcementsCount = \App\Models\Announcement::count();
  
             return view('dashboard', compact(
                 'totalRooms',
@@ -33,7 +35,8 @@ class DashboardController extends Controller
                 'occupiedRooms',
                 'totalTenants',
                 'totalRevenue',
-                'recentPayments'
+                'recentPayments',
+                'announcementsCount'
             ));
         } elseif ($user->isLaundry()) {
             return redirect()->route('laundry.orders.index');
@@ -69,8 +72,23 @@ class DashboardController extends Controller
                 ->orderBy('payment_date', 'desc')
                 ->limit(5)
                 ->get() : collect();
+
+            // Fetch Latest Announcements for User/Partner
+            $role = $user->role;
+            $announcements = \App\Models\Announcement::where('is_active', true)
+                ->where(function($query) use ($role) {
+                    $query->where('target_role', 'all')
+                          ->orWhere('target_role', $role);
+                })
+                ->where(function($query) {
+                    $query->whereNull('expires_at')
+                          ->orWhere('expires_at', '>=', now());
+                })
+                ->orderBy('created_at', 'desc')
+                ->limit(3)
+                ->get();
             
-            return view('dashboard_user', compact('tenant', 'myRentals', 'myPayments', 'activeRental', 'currentPaymentStatus'));
+            return view('dashboard_user', compact('tenant', 'myRentals', 'myPayments', 'activeRental', 'currentPaymentStatus', 'announcements'));
         }
     }
 }

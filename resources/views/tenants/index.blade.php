@@ -1,23 +1,24 @@
 <x-app-layout>
     @section('header_title', 'Tenants Management')
 
-    <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-slate-800">Daftar Penyewa</h2>
-            <a href="{{ route('tenants.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-xl font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
+    <div class="space-y-4 md:space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 class="text-xl md:text-2xl font-bold text-slate-800">Daftar Penyewa</h2>
+            <a href="{{ route('tenants.create') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 border border-transparent rounded-xl font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 transition btn-touch">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 Tambah Penyewa
             </a>
         </div>
 
         @if ($message = Session::get('success'))
-            <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl flex items-center shadow-sm">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div class="p-3 md:p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl flex items-center shadow-sm text-sm">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 {{ $message }}
             </div>
         @endif
 
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+        <!-- Desktop Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm desktop-table">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -67,6 +68,36 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="mobile-cards space-y-3">
+            @foreach ($tenants as $tenant)
+                <div class="mobile-card">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-black text-sm flex-shrink-0">
+                                {{ strtoupper(substr($tenant->user->name ?? 'U', 0, 1)) }}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-bold text-slate-800 truncate">{{ $tenant->user->name ?? 'Unknown' }}</div>
+                                <div class="text-[10px] text-slate-400">{{ $tenant->occupation }}</div>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full {{ $tenant->status == 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
+                            {{ ucfirst($tenant->status) }}
+                        </span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 mb-3 truncate">{{ $tenant->address }}</div>
+                    <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                        <span class="text-[10px] font-mono text-slate-400">NIK: {{ $tenant->nik }}</span>
+                        <div class="flex gap-1">
+                            <a href="{{ route('tenants.show', $tenant->id) }}" class="px-3 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-lg btn-touch">Detail</a>
+                            <a href="{{ route('tenants.edit', $tenant->id) }}" class="px-3 py-2 text-xs font-bold text-amber-600 bg-amber-50 rounded-lg btn-touch">Edit</a>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
         </div>
     </div>
 </x-app-layout>

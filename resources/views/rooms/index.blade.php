@@ -1,23 +1,24 @@
 <x-app-layout>
     @section('header_title', 'Rooms Management')
 
-    <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-slate-800">Daftar Kamar</h2>
-            <a href="{{ route('rooms.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-xl font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
+    <div class="space-y-4 md:space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 class="text-xl md:text-2xl font-bold text-slate-800">Daftar Kamar</h2>
+            <a href="{{ route('rooms.create') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 border border-transparent rounded-xl font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 transition btn-touch">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                 Tambah Kamar
             </a>
         </div>
 
         @if ($message = Session::get('success'))
-            <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl flex items-center shadow-sm">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div class="p-3 md:p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl flex items-center shadow-sm text-sm">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 {{ $message }}
             </div>
         @endif
 
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+        <!-- Desktop Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm desktop-table">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -74,6 +75,42 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="mobile-cards space-y-3">
+            @foreach ($rooms as $room)
+                <div class="mobile-card">
+                    <div class="flex items-start gap-3 mb-3">
+                        @if($room->picture && is_array($room->picture) && count($room->picture) > 0)
+                            <img src="{{ asset('storage/' . $room->picture[0]) }}" class="w-16 h-16 object-cover rounded-xl border border-slate-200 flex-shrink-0">
+                        @else
+                            <div class="w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center text-slate-300 flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                        @endif
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-black text-slate-800 text-lg">Room #{{ $room->room_number }}</span>
+                                <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full {{ $room->status == 'available' ? 'bg-emerald-100 text-emerald-700' : ($room->status == 'occupied' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700') }}">
+                                    {{ ucfirst($room->status) }}
+                                </span>
+                            </div>
+                            <div class="text-xs text-slate-500">{{ $room->room_type }}</div>
+                            <div class="text-sm font-bold text-brand-blue mt-1">Rp {{ number_format($room->price, 0, ',', '.') }}/bln</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-end gap-1 pt-3 border-t border-slate-100">
+                        <a href="{{ route('rooms.show', $room->id) }}" class="px-3 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-lg transition btn-touch">Detail</a>
+                        <a href="{{ route('rooms.edit', $room->id) }}" class="px-3 py-2 text-xs font-bold text-amber-600 bg-amber-50 rounded-lg transition btn-touch">Edit</a>
+                        <form action="{{ route('rooms.destroy', $room->id) }}" method="POST" class="inline-block">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="px-3 py-2 text-xs font-bold text-rose-600 bg-rose-50 rounded-lg transition btn-touch" onclick="return confirm('Yakin hapus data ini?')">Hapus</button>
+                        </form>
+                    </div>
+                </div>
+            @endforeach
         </div>
     </div>
 </x-app-layout>

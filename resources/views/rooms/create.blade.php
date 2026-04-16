@@ -126,6 +126,12 @@
             </form>
         </div>
     </div>
+    <script>
+        // Global variables for file handling
+        let fileQueue = new DataTransfer();
+        const fileInput = document.getElementById('file-upload');
+        const container = document.getElementById('image-preview-container');
+        const dropzone = document.getElementById('dropzone');
 
         // --- Location API Integration ---
         const baseUrl = 'https://www.emsifa.com/api-wilayah-indonesia/api';
@@ -152,6 +158,7 @@
             resetSelect(vSelect, 'Kelurahan/Desa');
             
             if (this.value) {
+                document.getElementById('province-name-input').value = this.options[this.selectedIndex].text;
                 fetch(`${baseUrl}/regencies/${this.value}.json`)
                     .then(res => res.json())
                     .then(data => {
@@ -163,6 +170,8 @@
                             cSelect.appendChild(opt);
                         });
                     });
+            } else {
+                document.getElementById('province-name-input').value = '';
             }
         });
 
@@ -171,6 +180,7 @@
             resetSelect(vSelect, 'Kelurahan/Desa');
             
             if (this.value) {
+                document.getElementById('city-name-input').value = this.options[this.selectedIndex].text;
                 fetch(`${baseUrl}/districts/${this.value}.json`)
                     .then(res => res.json())
                     .then(data => {
@@ -182,6 +192,8 @@
                             dSelect.appendChild(opt);
                         });
                     });
+            } else {
+                document.getElementById('city-name-input').value = '';
             }
         });
 
@@ -189,6 +201,7 @@
             resetSelect(vSelect, 'Kelurahan/Desa');
             
             if (this.value) {
+                document.getElementById('district-name-input').value = this.options[this.selectedIndex].text;
                 fetch(`${baseUrl}/villages/${this.value}.json`)
                     .then(res => res.json())
                     .then(data => {
@@ -200,6 +213,16 @@
                             vSelect.appendChild(opt);
                         });
                     });
+            } else {
+                document.getElementById('district-name-input').value = '';
+            }
+        });
+
+        vSelect.addEventListener('change', function() {
+            if (this.value) {
+                document.getElementById('village-name-input').value = this.options[this.selectedIndex].text;
+            } else {
+                document.getElementById('village-name-input').value = '';
             }
         });
 
@@ -208,53 +231,24 @@
             el.disabled = true;
         }
 
-        // Before submitting, we need the NAMES not the IDs
-        document.getElementById('room-form').addEventListener('submit', function(e) {
-            // We'll replace the ID values with the actual text names before submission
-            // to make filtering/searching easier as requested.
-            const selects = [pSelect, cSelect, dSelect, vSelect];
-            selects.forEach(s => {
-                const selectedText = s.options[s.selectedIndex].text;
-                if (s.value) {
-                    // Temporarily change value to text so Laravel receives strings
-                    // We'll use a hack or just ensure validation handles it.
-                    // Actually, let's just use hidden inputs for the names.
-                }
-            });
-        });
-
-        // Better way: use hidden inputs for the names
+        // --- Hidden Inputs for Names ---
         const names = ['province', 'city', 'district', 'village'];
         names.forEach(name => {
             const input = document.createElement('input');
             input.type = 'hidden';
-            input.name = name + '_name';
+            input.name = name; // Controller expects string
             input.id = name + '-name-input';
             document.getElementById('room-form').appendChild(input);
         });
 
-        [pSelect, cSelect, dSelect, vSelect].forEach((s, idx) => {
-            s.addEventListener('change', () => {
-                document.getElementById(names[idx] + '-name-input').value = s.options[s.selectedIndex].text;
-            });
-        });
-
-        // Wait, I already updated the controller to expect 'province', 'city', etc.
-        // So I'll just change the select 'name' attributes to something else
-        // and have hidden inputs with the original names.
-        pSelect.name = "province_id";
-        cSelect.name = "city_id";
-        dSelect.name = "district_id";
-        vSelect.name = "village_id";
-        
-        // Ensure hidden inputs have the direct names the controller expects
-        document.getElementById('province-name-input').name = 'province';
-        document.getElementById('city-name-input').name = 'city';
-        document.getElementById('district-name-input').name = 'district';
-        document.getElementById('village-name-input').name = 'village';
-
+        // Update select names so they don't conflict with string names
+        pSelect.name = 'province_id';
+        cSelect.name = 'city_id';
+        dSelect.name = 'district_id';
+        vSelect.name = 'village_id';
 
         // --- File Upload Logic ---
+        function handleFileSelect(event) {
             const files = event.target.files;
             
             for (let i = 0; i < files.length; i++) {
@@ -265,7 +259,6 @@
                 
                 // Create Preview
                 const reader = new FileReader();
-                const fileIndex = fileQueue.items.length - 1;
                 
                 reader.onload = function(e) {
                     const div = document.createElement('div');
@@ -296,7 +289,6 @@
             let removed = false;
 
             for (let i = 0; i < currentFiles.length; i++) {
-                // If matches and not already removed (to handle same name/size duplicates carefully)
                 if (!removed && currentFiles[i].name === name && currentFiles[i].size === size) {
                     removed = true;
                     continue;

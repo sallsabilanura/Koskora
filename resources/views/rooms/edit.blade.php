@@ -155,6 +155,12 @@
     </form>
 
     <script>
+        // Global variables for file handling
+        let fileQueue = new DataTransfer();
+        const fileInput = document.getElementById('file-upload');
+        const container = document.getElementById('gallery-container');
+        const dropzone = document.getElementById('dropzone');
+
         function confirmDeleteImage(path) {
             if (confirm('Hapus foto ini dari galeri secara permanen?')) {
                 document.getElementById('delete-image-path').value = path;
@@ -266,6 +272,7 @@
         }
 
         // --- File Queue Logic ---
+        function handleQueueFiles(event) {
             const files = event.target.files;
 
             for (let i = 0; i < files.length; i++) {

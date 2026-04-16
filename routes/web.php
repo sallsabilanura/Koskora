@@ -10,6 +10,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\LaundryController;
 use App\Http\Controllers\CleaningController;
+use App\Http\Controllers\AnnouncementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,9 +27,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/rooms/{room}', [RoomController::class, 'show'])->name('rooms.show');
 
-// Booking Flow
-Route::post('/rooms/{room}/rent', [BookingController::class, 'rent'])->name('bookings.rent');
-
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
@@ -38,14 +36,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // User/Tenant routes
     Route::middleware('role:user')->group(function () {
-        Route::get('/booking/create', [BookingController::class, 'create'])->name('bookings.create');
-        Route::post('/booking', [BookingController::class, 'store'])->name('bookings.store');
+        // Booking Flow
+        Route::post('/bookings/{room}/rent', [BookingController::class, 'rent'])->name('bookings.rent');
+        Route::get('/bookings/{room}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
+        Route::post('/bookings/{room}/store', [BookingController::class, 'store'])->name('bookings.store');
         
         // Payments
         Route::get('/my-payments', [RentPaymentController::class, 'myPayments'])->name('rent-payments.my-payments');
-        Route::get('/rent-payments/create', [RentPaymentController::class, 'userCreate'])->name('rent-payments.user-create');
-        Route::post('/rent-payments', [RentPaymentController::class, 'userStore'])->name('rent-payments.user-store');
-        Route::get('/rent-payments/{rentPayment}/ticket', [RentPaymentController::class, 'showTicket'])->name('rent-payments.ticket');
+        Route::get('/my-payments/create', [RentPaymentController::class, 'userCreate'])->name('rent-payments.user-create');
+        Route::post('/my-payments/store', [RentPaymentController::class, 'userStore'])->name('rent-payments.user-store');
+        Route::get('/my-payments/{rentPayment}/ticket', [RentPaymentController::class, 'showTicket'])->name('rent-payments.ticket');
         // Laundry Service (User/Tenant)
         Route::get('/laundry', [LaundryController::class, 'userIndex'])->name('user.laundry.index');
         Route::get('/laundry/order/{laundry}', [LaundryController::class, 'userOrder'])->name('user.laundry.order');
@@ -55,6 +55,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Cleaning Service (User/Tenant)
         Route::get('/cleaning', [CleaningController::class, 'userIndex'])->name('user.cleaning.index');
         Route::post('/cleaning', [CleaningController::class, 'userStoreOrder'])->name('user.cleaning.store');
+
+        // Announcements (User/Tenant)
+        Route::get('/announcements', [AnnouncementController::class, 'userIndex'])->name('user.announcements.index');
     });
 
     // Laundry Partner routes
@@ -80,12 +83,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin only routes
     Route::middleware('role:admin')->group(function () {
         Route::resource('rooms', RoomController::class);
+
         Route::post('/rooms/{room}/image/delete', [RoomController::class, 'destroyImage'])->name('rooms.image.destroy');
         Route::resource('tenants', TenantsController::class);
         Route::resource('rentals', RentalController::class);
         Route::post('/rentals/{rental}/approve', [RentalController::class, 'approve'])->name('rentals.approve');
         Route::resource('rent-payments', RentPaymentController::class);
         Route::post('/rent-payments/{rentPayment}/verify', [RentPaymentController::class, 'verify'])->name('rent-payments.verify');
+        Route::post('/rent-payments/{rentPayment}/reject', [RentPaymentController::class, 'reject'])->name('rent-payments.reject');
         
         // Laundry Management
         Route::get('/admin/laundries', [LaundryController::class, 'adminIndex'])->name('admin.laundries.index');
@@ -98,6 +103,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/admin/cleaning/cleaners', [CleaningController::class, 'adminCleanerStore'])->name('admin.cleaning.cleaners.store');
         Route::get('/admin/cleaning/packages', [CleaningController::class, 'adminPackages'])->name('admin.cleaning.packages');
         Route::post('/admin/cleaning/packages', [CleaningController::class, 'adminPackageStore'])->name('admin.cleaning.packages.store');
+
+        // Announcement Management
+        Route::resource('admin/announcements', AnnouncementController::class, ['names' => 'admin.announcements']);
     });
 });
 
