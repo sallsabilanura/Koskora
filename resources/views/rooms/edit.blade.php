@@ -33,6 +33,13 @@
                 @method('PUT')
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Property Name -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Nama Properti / Kos</label>
+                        <input type="text" name="property_name" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold" placeholder="Contoh: Kos Kalibata City, Kos Tebet Indah..." value="{{ old('property_name', $room->property_name) }}">
+                        <p class="text-xs text-slate-400 mt-1.5">Nama properti digunakan untuk mengelompokkan kamar di halaman utama.</p>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">No Kamar</label>
                         <input type="text" name="room_number" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold" value="{{ old('room_number', $room->room_number) }}">
@@ -58,6 +65,44 @@
                             <option value="occupied" {{ old('status', $room->status) == 'occupied' ? 'selected' : '' }}>Occupied</option>
                             <option value="maintenance" {{ old('status', $room->status) == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
                         </select>
+                    </div>
+
+                    <!-- Gender Category -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Kategori Gender</label>
+                        <select name="gender" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold text-slate-600">
+                            <option value="gabungan" {{ old('gender', $room->gender) == 'gabungan' ? 'selected' : '' }}>Gabungan (Putra/Putri)</option>
+                            <option value="putra" {{ old('gender', $room->gender) == 'putra' ? 'selected' : '' }}>Khusus Putra</option>
+                            <option value="putri" {{ old('gender', $room->gender) == 'putri' ? 'selected' : '' }}>Khusus Putri</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Room Assets -->
+                <div class="pt-8 border-t border-slate-100">
+                    <label class="block text-sm font-bold text-slate-700 mb-4">Aset & Fasilitas Kamar</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        @php
+                            $roomAssetIds = $room->assets->pluck('id')->toArray();
+                        @endphp
+                        @foreach($assets as $asset)
+                            <label class="relative group cursor-pointer">
+                                <input type="checkbox" name="assets[]" value="{{ $asset->id }}" class="peer hidden" {{ in_array($asset->id, old('assets', $roomAssetIds)) ? 'checked' : '' }}>
+                                <div class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all hover:border-slate-200 flex flex-col items-center text-center space-y-2">
+                                    <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        @if($asset->icon)
+                                            <i class="{{ $asset->icon }} text-lg"></i>
+                                        @else
+                                            <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                                        @endif
+                                    </div>
+                                    <span class="text-xs font-bold uppercase tracking-tight">{{ $asset->name }}</span>
+                                </div>
+                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                </div>
+                            </label>
+                        @endforeach
                     </div>
                 </div>
 

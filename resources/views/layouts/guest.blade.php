@@ -39,13 +39,13 @@
             }
         </style>
     </head>
-    <body class="font-sans text-slate-900 antialiased bg-white overflow-x-hidden">
+    <body class="font-sans text-slate-900 antialiased bg-[#fdfdfe] overflow-x-hidden">
         <div class="min-h-screen flex flex-col md:flex-row divide-x divide-slate-100">
             <!-- Left Side: Brand Area -->
             <div class="hidden md:flex md:w-5/12 brand-solid brand-pattern relative flex-col justify-between p-16 lg:p-24 overflow-hidden shadow-[inset_-20px_0_30px_rgba(0,0,0,0.1)]">
                 <div class="relative z-10">
                     <a href="/" class="inline-block transition-transform hover:scale-105 active:scale-95 duration-300">
-                        <img src="{{ asset('koskora.png') }}" alt="KosKora Logo" class="h-14 w-auto brightness-0 invert shadow-2xl">
+                        <img src="{{ asset('koskora.png') }}" alt="KosKora Logo" class="h-14 w-auto brightness-0 invert shadow-2xl rounded-none">
                     </a>
                 </div>
 
@@ -71,7 +71,7 @@
             </div>
 
             <!-- Right Side: Content Area -->
-            <div class="flex-1 flex flex-col justify-center p-8 sm:p-12 lg:p-24 bg-white relative">
+            <div class="flex-1 flex flex-col justify-center p-8 sm:p-12 lg:p-24 bg-[#fdfdfe] relative">
                 <!-- Mobile Logo -->
                 <div class="md:hidden mb-16 flex justify-center">
                     <a href="/">

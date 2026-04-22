@@ -94,6 +94,34 @@ class CleaningController extends Controller
         return redirect()->back()->with('success', 'Status pesanan diperbarui.');
     }
 
+    public function cleanerVerifyPayment(CleaningOrder $order)
+    {
+        if ($order->cleaner_id !== auth()->user()->cleaner->id) {
+            abort(403);
+        }
+
+        $order->update(['payment_status' => 'paid']);
+        return redirect()->back()->with('success', 'Pembayaran berhasil diverifikasi.');
+    }
+
+    public function cleanerUpdateBankInfo(Request $request)
+    {
+        $request->validate([
+            'bank_name' => 'required|string|max:255',
+            'account_number' => 'required|string|max:255',
+            'account_name' => 'required|string|max:255',
+        ]);
+
+        $cleaner = auth()->user()->cleaner;
+        $cleaner->update([
+            'bank_name' => $request->bank_name,
+            'account_number' => $request->account_number,
+            'account_name' => $request->account_name,
+        ]);
+
+        return redirect()->back()->with('success', 'Informasi rekening berhasil diperbarui.');
+    }
+
     // --- User/Tenant Actions ---
     public function userIndex()
     {
@@ -124,10 +152,31 @@ class CleaningController extends Controller
             'package_id' => $request->package_id,
             'scheduled_at' => $request->scheduled_at,
             'status' => 'pending',
+            'payment_status' => 'unpaid',
             'total_price' => $package->price,
             'notes' => $request->notes,
         ]);
 
         return redirect()->route('user.cleaning.index')->with('success', 'Pesanan bebersih berhasil dikirim! Petugas akan datang sesuai jadwal.');
+    }
+
+    public function userSubmitPayment(Request $request, CleaningOrder $order)
+    {
+        $request->validate([
+            'payment_proof' => 'required|image|max:2048',
+        ]);
+
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $path = $request->file('payment_proof')->store('cleaning_payments', 'public');
+        
+        $order->update([
+            'payment_proof' => $path,
+            'payment_status' => 'pending'
+        ]);
+
+        return redirect()->back()->with('success', 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi petugas.');
     }
 }

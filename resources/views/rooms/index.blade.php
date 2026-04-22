@@ -45,7 +45,18 @@
                                     </div>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-slate-800 font-bold">{{ $room->room_number }}</td>
+                            <td class="px-6 py-4">
+                                <div class="text-slate-800 font-bold">{{ $room->room_number }}</div>
+                                <div class="mt-1">
+                                    @if($room->gender == 'putra')
+                                        <span class="px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-blue-100 text-blue-700 rounded-lg">Putra</span>
+                                    @elseif($room->gender == 'putri')
+                                        <span class="px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-pink-100 text-pink-700 rounded-lg">Putri</span>
+                                    @else
+                                        <span class="px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-purple-100 text-purple-700 rounded-lg">Gabungan</span>
+                                    @endif
+                                </div>
+                            </td>
                             <td class="px-6 py-4 text-slate-600">{{ $room->room_type }}</td>
                             <td class="px-6 py-4 text-slate-800 font-semibold">Rp {{ number_format($room->price, 0, ',', '.') }}</td>
                             <td class="px-6 py-4 text-center">
@@ -96,7 +107,16 @@
                                     {{ ucfirst($room->status) }}
                                 </span>
                             </div>
-                            <div class="text-xs text-slate-500">{{ $room->room_type }}</div>
+                            <div class="text-xs text-slate-500 mb-2">{{ $room->room_type }}</div>
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                @if($room->gender == 'putra')
+                                    <span class="px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-blue-100 text-blue-700 rounded-lg">Khusus Putra</span>
+                                @elseif($room->gender == 'putri')
+                                    <span class="px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-pink-100 text-pink-700 rounded-lg">Khusus Putri</span>
+                                @else
+                                    <span class="px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-purple-100 text-purple-700 rounded-lg">Campur</span>
+                                @endif
+                            </div>
                             <div class="text-sm font-bold text-brand-blue mt-1">Rp {{ number_format($room->price, 0, ',', '.') }}/bln</div>
                         </div>
                     </div>

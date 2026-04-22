@@ -13,6 +13,9 @@ class Cleaner extends Model
         'user_id',
         'photo',
         'bio',
+        'bank_name',
+        'account_number',
+        'account_name',
     ];
 
     public function user()

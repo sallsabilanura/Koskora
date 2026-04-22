@@ -24,6 +24,35 @@
             <form action="{{ route('rooms.store') }}" method="POST" enctype="multipart/form-data" class="space-y-10" id="room-form">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Property Name (Smart Combo-box) -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Nama Properti / Kos</label>
+                        <div class="relative">
+                            <input
+                                type="text"
+                                name="property_name"
+                                id="property_name_input"
+                                list="property-name-list"
+                                class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold pr-10"
+                                placeholder="Pilih yang ada atau ketik nama baru..."
+                                value="{{ old('property_name') }}"
+                                autocomplete="off"
+                            >
+                            <datalist id="property-name-list">
+                                @foreach($propertyNames as $pn)
+                                    <option value="{{ $pn }}">{{ $pn }}</option>
+                                @endforeach
+                            </datalist>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1.5">
+                            <span class="font-bold text-blue-500">Pilih</span> nama kos yang sudah ada, atau <span class="font-bold text-emerald-500">ketik baru</span> untuk membuat properti baru.
+                            Kamar dengan nama yang sama akan otomatis dikelompokkan.
+                        </p>
+                    </div>
+
                     <!-- Room Number -->
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">No Kamar</label>
@@ -53,6 +82,41 @@
                             <option value="occupied" {{ old('status') == 'occupied' ? 'selected' : '' }}>Occupied</option>
                             <option value="maintenance" {{ old('status') == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
                         </select>
+                    </div>
+
+                    <!-- Gender Category -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Kategori Gender</label>
+                        <select name="gender" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold text-slate-600">
+                            <option value="gabungan" {{ old('gender') == 'gabungan' ? 'selected' : '' }}>Gabungan (Putra/Putri)</option>
+                            <option value="putra" {{ old('gender') == 'putra' ? 'selected' : '' }}>Khusus Putra</option>
+                            <option value="putri" {{ old('gender') == 'putri' ? 'selected' : '' }}>Khusus Putri</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Room Assets -->
+                <div class="pt-8 border-t border-slate-100">
+                    <label class="block text-sm font-bold text-slate-700 mb-4">Aset & Fasilitas Kamar</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        @foreach($assets as $asset)
+                            <label class="relative group cursor-pointer">
+                                <input type="checkbox" name="assets[]" value="{{ $asset->id }}" class="peer hidden" {{ is_array(old('assets')) && in_array($asset->id, old('assets')) ? 'checked' : '' }}>
+                                <div class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all hover:border-slate-200 flex flex-col items-center text-center space-y-2">
+                                    <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        @if($asset->icon)
+                                            <i class="{{ $asset->icon }} text-lg"></i>
+                                        @else
+                                            <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                                        @endif
+                                    </div>
+                                    <span class="text-xs font-bold uppercase tracking-tight">{{ $asset->name }}</span>
+                                </div>
+                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                </div>
+                            </label>
+                        @endforeach
                     </div>
                 </div>
 

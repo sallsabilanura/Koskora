@@ -10,6 +10,7 @@ class Room extends Model
     use HasFactory;
 
     protected $fillable = [
+        'property_name',
         'room_number',
         'room_type',
         'price',
@@ -21,6 +22,7 @@ class Room extends Model
         'village',
         'description',
         'picture',
+        'gender',
     ];
 
     protected $casts = [
@@ -35,5 +37,15 @@ class Room extends Model
     public function rentals()
     {
         return $this->hasMany(Rental::class);
+    }
+
+    public function assets()
+    {
+        return $this->belongsToMany(Asset::class, 'room_asset');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(RoomReview::class);
     }
 }

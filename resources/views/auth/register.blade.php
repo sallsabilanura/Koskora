@@ -10,33 +10,33 @@
         <!-- Name -->
         <div class="space-y-2">
             <label for="name" class="block text-[10px] font-black text-brand-blue uppercase tracking-widest">Nama Lengkap</label>
-            <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus placeholder="Contoh: Budi Santoso" class="block w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-brand-blue focus:ring-0 transition-all font-bold text-slate-700 placeholder:text-slate-300">
+            <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus placeholder="Contoh: Budi Santoso" class="block w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-brand-blue focus:ring-0 transition-all font-bold text-slate-700 placeholder:text-slate-300">
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
         <!-- Email Address -->
         <div class="space-y-2">
             <label for="email" class="block text-[10px] font-black text-brand-blue uppercase tracking-widest">Email Address</label>
-            <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="name@email.com" class="block w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-brand-blue focus:ring-0 transition-all font-bold text-slate-700 placeholder:text-slate-300">
+            <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="name@email.com" class="block w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-brand-blue focus:ring-0 transition-all font-bold text-slate-700 placeholder:text-slate-300">
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Password -->
         <div class="space-y-2">
             <label for="password" class="block text-[10px] font-black text-brand-blue uppercase tracking-widest">Password</label>
-            <input id="password" type="password" name="password" required placeholder="••••••••" class="block w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-brand-blue focus:ring-0 transition-all font-bold text-slate-700 placeholder:text-slate-300">
+            <input id="password" type="password" name="password" required placeholder="••••••••" class="block w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-brand-blue focus:ring-0 transition-all font-bold text-slate-700 placeholder:text-slate-300">
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
         <!-- Confirm Password -->
         <div class="space-y-2">
             <label for="password_confirmation" class="block text-[10px] font-black text-brand-blue uppercase tracking-widest">Konfirmasi Password</label>
-            <input id="password_confirmation" type="password" name="password_confirmation" required placeholder="••••••••" class="block w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-brand-blue focus:ring-0 transition-all font-bold text-slate-700 placeholder:text-slate-300">
+            <input id="password_confirmation" type="password" name="password_confirmation" required placeholder="••••••••" class="block w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-brand-blue focus:ring-0 transition-all font-bold text-slate-700 placeholder:text-slate-300">
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
         <div class="pt-6">
-            <button type="submit" class="w-full py-4 bg-brand-red text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-blue transition-all transform active:scale-[0.98]">
+            <button type="submit" class="w-full py-4 bg-brand-red text-white rounded-[0.875rem] font-black text-xs uppercase tracking-widest hover:bg-brand-blue transition-all transform active:scale-[0.98]">
                 Daftar Sekarang
             </button>
         </div>

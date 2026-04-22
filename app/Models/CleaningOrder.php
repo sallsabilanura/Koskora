@@ -17,6 +17,8 @@ class CleaningOrder extends Model
         'status',
         'total_price',
         'notes',
+        'payment_status',
+        'payment_proof',
     ];
 
     protected $casts = [

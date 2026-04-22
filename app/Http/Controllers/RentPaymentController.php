@@ -7,6 +7,9 @@ use App\Models\Rental;
 use App\Models\Room;
 use App\Models\Tenants;
 use Illuminate\Http\Request;
+use Midtrans\Config;
+use Midtrans\Snap;
+use Midtrans\Transaction;
 
 class RentPaymentController extends Controller
 {
@@ -250,7 +253,7 @@ class RentPaymentController extends Controller
             'currentPaymentStatus', 
             'currentPayment', 
             'myPayments'
-        ));
+        ))->with('midtransClientKey', config('services.midtrans.client_key'));
     }
 
     /**
@@ -268,5 +271,106 @@ class RentPaymentController extends Controller
         }
 
         return view('rent_payments.ticket', compact('rentPayment'));
+    }
+
+    /**
+     * Get or Generate Midtrans Snap Token
+     */
+    public function getSnapToken(Request $request)
+    {
+        $rental = Rental::with(['tenant', 'room'])->findOrFail($request->rental_id);
+        $user = auth()->user();
+
+        // Check if there's already an active (unpaid/pending/cancelled) midtrans payment for this month
+        $month = date('F Y');
+        
+        // Find existing unpaid/failed midtrans payment to reuse
+        $payment = RentPayment::where('rental_id', $rental->id)
+            ->where('month', $month)
+            ->where('method', 'Midtrans')
+            ->whereIn('status', ['unpaid', 'pending'])
+            ->first();
+
+        if (!$payment) {
+            $payment = RentPayment::create([
+                'rental_id' => $rental->id,
+                'room_id' => $rental->room_id,
+                'tenants_id' => $rental->tenant_id,
+                'month' => $month,
+                'amount' => $rental->monthly_price ?? $rental->room->price,
+                'payment_date' => now(),
+                'status' => 'unpaid',
+                'method' => 'Midtrans',
+            ]);
+        }
+
+        // Midtrans Configuration
+        Config::$serverKey = trim(config('services.midtrans.server_key'));
+        Config::$isProduction = (bool)config('services.midtrans.is_production');
+        Config::$isSanitized = (bool)config('services.midtrans.is_sanitized');
+        Config::$is3ds = (bool)config('services.midtrans.is_3ds');
+
+        $params = [
+            'transaction_details' => [
+                'order_id' => 'RENT-' . $payment->id . '-' . time(),
+                'gross_amount' => (int)$payment->amount,
+            ],
+            'customer_details' => [
+                'first_name' => $user->name,
+                'email' => $user->email,
+                'phone' => $rental->tenant->phone ?? '',
+            ],
+            'item_details' => [
+                [
+                    'id' => 'ROOM-' . $rental->room_id,
+                    'price' => (int)$payment->amount,
+                    'quantity' => 1,
+                    'name' => 'Sewa Kamar ' . $rental->room->room_number . ' (' . $month . ')',
+                ]
+            ],
+        ];
+
+        try {
+            $snapToken = Snap::getSnapToken($params);
+            $payment->update([
+                'snap_token' => $snapToken,
+                'transaction_id' => $params['transaction_details']['order_id']
+            ]);
+
+            return response()->json(['snap_token' => $snapToken]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+    /**
+     * Check real-time payment status from Midtrans
+     */
+    public function checkPaymentStatus(RentPayment $rentPayment)
+    {
+        if (!$rentPayment->transaction_id) {
+            return response()->json(['message' => 'Belum ada transaksi Midtrans untuk data ini.'], 404);
+        }
+
+        Config::$serverKey = trim(config('services.midtrans.server_key'));
+        Config::$isProduction = (bool)config('services.midtrans.is_production');
+
+        try {
+            $status = Transaction::status($rentPayment->transaction_id);
+            $transactionStatus = $status->transaction_status;
+            
+            if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
+                $rentPayment->update(['status' => 'paid']);
+                return response()->json(['status' => 'paid', 'message' => 'Pembayaran Berhasil!']);
+            } else if ($transactionStatus == 'pending') {
+                return response()->json(['status' => 'pending', 'message' => 'Pembayaran masih tertunda.']);
+            } else if ($transactionStatus == 'deny' || $transactionStatus == 'expire' || $transactionStatus == 'cancel') {
+                $rentPayment->update(['status' => 'unpaid']);
+                return response()->json(['status' => 'unpaid', 'message' => 'Pembayaran gagal, kadaluarsa, atau dibatalkan.']);
+            }
+
+            return response()->json(['status' => $transactionStatus, 'message' => 'Status: ' . $transactionStatus]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal mengecek status: ' . $e->getMessage()], 500);
+        }
     }
 }

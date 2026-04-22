@@ -15,6 +15,9 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        
+        <!-- Icons -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/dashboard.css'])
@@ -57,7 +60,7 @@
                     </div>
                     <div class="flex items-center space-x-4 sm:space-x-6">
                         <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 group" title="My Profile">
-                            <div class="w-8 h-8 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-black text-xs group-hover:bg-brand-blue group-hover:text-white transition-all">
+                            <div class="w-9 h-9 rounded-none bg-brand-blue/10 flex items-center justify-center text-brand-blue font-black text-xs group-hover:bg-brand-blue group-hover:text-white transition-all shadow-sm">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                             </div>
                             <div class="flex flex-col items-end hidden sm:flex">
@@ -70,8 +73,8 @@
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="flex items-center text-slate-400 hover:text-rose-600 transition-all group px-3 py-2 rounded-xl hover:bg-rose-50 btn-touch">
-                                <span class="text-xs font-bold mr-2 hidden md:block">Logout</span>
+                            <button type="submit" class="flex items-center text-slate-400 hover:text-rose-600 transition-all group px-3 py-2 rounded-none hover:bg-rose-50 btn-touch">
+                                <span class="text-xs font-bold mr-2 hidden md:block uppercase tracking-wider">Logout</span>
                                 <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                             </button>
                         </form>

@@ -18,6 +18,8 @@ class RentPayment extends Model
         'method',
         'payment_proof',
         'rejection_reason',
+        'snap_token',
+        'transaction_id',
     ];
 
     public function rental()

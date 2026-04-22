@@ -11,6 +11,8 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\LaundryController;
 use App\Http\Controllers\CleaningController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\MidtransController;
+use App\Http\Controllers\RoomReviewController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,6 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/my-payments', [RentPaymentController::class, 'myPayments'])->name('rent-payments.my-payments');
         Route::get('/my-payments/create', [RentPaymentController::class, 'userCreate'])->name('rent-payments.user-create');
         Route::post('/my-payments/store', [RentPaymentController::class, 'userStore'])->name('rent-payments.user-store');
+        Route::post('/my-payments/midtrans-token', [RentPaymentController::class, 'getSnapToken'])->name('rent-payments.midtrans-token');
+        Route::post('/my-payments/{rentPayment}/check-status', [RentPaymentController::class, 'checkPaymentStatus'])->name('rent-payments.check-status');
         Route::get('/my-payments/{rentPayment}/ticket', [RentPaymentController::class, 'showTicket'])->name('rent-payments.ticket');
         // Laundry Service (User/Tenant)
         Route::get('/laundry', [LaundryController::class, 'userIndex'])->name('user.laundry.index');
@@ -55,9 +59,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Cleaning Service (User/Tenant)
         Route::get('/cleaning', [CleaningController::class, 'userIndex'])->name('user.cleaning.index');
         Route::post('/cleaning', [CleaningController::class, 'userStoreOrder'])->name('user.cleaning.store');
+        Route::post('/cleaning/order/{order}/payment', [CleaningController::class, 'userSubmitPayment'])->name('user.cleaning.payment.store');
 
         // Announcements (User/Tenant)
         Route::get('/announcements', [AnnouncementController::class, 'userIndex'])->name('user.announcements.index');
+
+        // Rental Termination
+        Route::post('/rentals/{rental}/terminate', [RentalController::class, 'requestTermination'])->name('rentals.request-termination');
+
+        // Room Reviews
+        Route::post('/room-reviews', [RoomReviewController::class, 'store'])->name('room-reviews.store');
     });
 
     // Laundry Partner routes
@@ -78,6 +89,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:cleaner')->group(function () {
         Route::get('/cleaner/orders', [CleaningController::class, 'cleanerOrders'])->name('cleaner.orders.index');
         Route::post('/cleaner/orders/{order}/status', [CleaningController::class, 'cleanerUpdateStatus'])->name('cleaner.orders.status');
+        Route::post('/cleaner/orders/{order}/verify-payment', [CleaningController::class, 'cleanerVerifyPayment'])->name('cleaner.verify-payment');
+        Route::post('/cleaner/bank-info', [CleaningController::class, 'cleanerUpdateBankInfo'])->name('cleaner.bank-info.update');
     });
 
     // Admin only routes
@@ -116,3 +129,6 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Midtrans Notification - Webhook
+Route::post('/midtrans/notification', [MidtransController::class, 'notificationHandler']);

@@ -61,7 +61,7 @@
         </div>
 
         <!-- Recent Activity -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+        <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
             <div class="px-4 md:px-6 py-4 md:py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
                 <h3 class="text-base md:text-lg font-bold text-slate-800">Recent Payments</h3>
                 <a href="{{ route('rent-payments.index') }}" class="text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-700">View All</a>
@@ -113,7 +113,7 @@
                     <div class="mobile-card">
                         <div class="flex items-center justify-between mb-3">
                             <div class="font-bold text-slate-800 text-sm">{{ $payment->tenants->name }}</div>
-                            <span class="px-2.5 py-1 text-[10px] font-bold rounded-full {{ $payment->status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
+                            <span class="px-2.5 py-1 text-[10px] font-bold rounded-none {{ $payment->status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
                                 {{ ucfirst($payment->status) }}
                             </span>
                         </div>

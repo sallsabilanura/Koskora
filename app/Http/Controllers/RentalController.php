@@ -44,6 +44,7 @@ class RentalController extends Controller
         $endDate = $startDate->copy()->addMonths($validatedData['duration_months']);
 
         $validatedData['end_date'] = $endDate;
+        $validatedData['monthly_price'] = $room->price;
         $validatedData['total_price'] = $room->price * $validatedData['duration_months'];
         unset($validatedData['duration_months']);
 
@@ -88,17 +89,10 @@ class RentalController extends Controller
             'tenant_id' => 'required|exists:tenants,id',
             'room_id' => 'required|exists:rooms,id',
             'start_date' => 'required|date',
-            'duration_months' => 'required|integer|min:1',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'monthly_price' => 'required|numeric|min:0',
             'status' => 'required|in:active,finished',
         ]);
-
-        $room = \App\Models\Room::findOrFail($validatedData['room_id']);
-        $startDate = \Carbon\Carbon::parse($validatedData['start_date']);
-        $endDate = $startDate->copy()->addMonths($validatedData['duration_months']);
-
-        $validatedData['end_date'] = $endDate;
-        $validatedData['total_price'] = $room->price * $validatedData['duration_months'];
-        unset($validatedData['duration_months']);
 
         $oldRoomId = $rental->room_id;
         $oldStatus = $rental->status;
@@ -164,5 +158,26 @@ class RentalController extends Controller
         $rental->room->update(['status' => 'occupied']);
 
         return redirect()->route('rentals.index')->with('success', 'Penyewaan berhasil disetujui (ACC).');
+    }
+
+    /**
+     * Handle termination request from tenant.
+     */
+    public function requestTermination(Request $request, Rental $rental)
+    {
+        // Security check: only the tenant owning the rental can request termination
+        if ($rental->tenant_id != auth()->user()->tenant->id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'end_date' => 'required|date|after:today',
+        ]);
+
+        $rental->update([
+            'end_date' => $request->end_date,
+        ]);
+
+        return redirect()->back()->with('success', 'Rencana keluar berhasil disimpan. Tanggal berakhir disetel ke ' . \Carbon\Carbon::parse($request->end_date)->format('d M Y'));
     }
 }

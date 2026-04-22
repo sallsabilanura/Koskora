@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
+use App\Models\Asset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -22,7 +23,9 @@ class RoomController extends Controller
      */
     public function create()
     {
-        return view('rooms.create');
+        $assets = Asset::all();
+        $propertyNames = Room::whereNotNull('property_name')->distinct()->pluck('property_name');
+        return view('rooms.create', compact('assets', 'propertyNames'));
     }
 
     /**
@@ -31,6 +34,7 @@ class RoomController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
+            'property_name' => 'required|string|max:255',
             'room_number' => 'required|string|max:255|unique:rooms,room_number',
             'room_type' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
@@ -41,8 +45,11 @@ class RoomController extends Controller
             'village' => 'required|string',
             'address' => 'required|string',
             'description' => 'nullable|string',
+            'gender' => 'required|in:putra,putri,gabungan',
+            'assets' => 'nullable|array',
+            'assets.*' => 'exists:assets,id',
             'picture' => 'nullable|array',
-            'picture.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // validation for each image
+            'picture.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $picturesPaths = [];
@@ -55,7 +62,11 @@ class RoomController extends Controller
 
         $validatedData['picture'] = $picturesPaths;
 
-        Room::create($validatedData);
+        $room = Room::create($validatedData);
+
+        if ($request->has('assets')) {
+            $room->assets()->sync($request->assets);
+        }
 
         return redirect()->route('rooms.index')->with('success', 'Data kamar berhasil ditambahkan.');
     }
@@ -73,7 +84,10 @@ class RoomController extends Controller
      */
     public function edit(Room $room)
     {
-        return view('rooms.edit', compact('room'));
+        $assets = Asset::all();
+        $room->load('assets');
+        $propertyNames = Room::whereNotNull('property_name')->distinct()->pluck('property_name');
+        return view('rooms.edit', compact('room', 'assets', 'propertyNames'));
     }
 
     /**
@@ -82,6 +96,7 @@ class RoomController extends Controller
     public function update(Request $request, Room $room)
     {
         $validatedData = $request->validate([
+            'property_name' => 'required|string|max:255',
             'room_number' => 'required|string|max:255|unique:rooms,room_number,' . $room->id,
             'room_type' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
@@ -92,6 +107,9 @@ class RoomController extends Controller
             'village' => 'required|string',
             'address' => 'required|string',
             'description' => 'nullable|string',
+            'gender' => 'required|in:putra,putri,gabungan',
+            'assets' => 'nullable|array',
+            'assets.*' => 'exists:assets,id',
             'picture' => 'nullable|array',
             'picture.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -112,6 +130,12 @@ class RoomController extends Controller
         }
 
         $room->update($validatedData);
+
+        if ($request->has('assets')) {
+            $room->assets()->sync($request->assets);
+        } else {
+            $room->assets()->detach();
+        }
 
         return redirect()->route('rooms.index')->with('success', 'Data kamar berhasil diperbarui.');
     }

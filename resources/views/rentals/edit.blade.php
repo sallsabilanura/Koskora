@@ -24,11 +24,6 @@
             </div>
         @endif
 
-        @php
-            $calculatedDuration = \Carbon\Carbon::parse($rental->start_date)->diffInMonths(\Carbon\Carbon::parse($rental->end_date));
-            $duration = old('duration_months', $calculatedDuration > 0 ? $calculatedDuration : 1);
-        @endphp
-
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
             <form action="{{ route('rentals.update', $rental->id) }}" method="POST" class="space-y-6">
                 @csrf
@@ -51,10 +46,10 @@
                     <!-- Room Selection -->
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Pilih Kamar</label>
-                        <select name="room_id" id="room_id" class="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-colors" required onchange="calculateRental()">
-                            <option value="" data-price="0">-- Pilih Kamar --</option>
+                        <select name="room_id" id="room_id" class="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-colors" required>
+                            <option value="">-- Pilih Kamar --</option>
                             @foreach($rooms as $room)
-                                <option value="{{ $room->id }}" data-price="{{ $room->price }}" {{ old('room_id', $rental->room_id) == $room->id ? 'selected' : '' }}>
+                                <option value="{{ $room->id }}" {{ old('room_id', $rental->room_id) == $room->id ? 'selected' : '' }}>
                                     {{ $room->room_number }} - {{ $room->room_type }} (Rp {{ number_format($room->price, 0, ',', '.') }}/bln)
                                 </option>
                             @endforeach
@@ -64,75 +59,40 @@
                     <!-- Start Date -->
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Tanggal Mulai</label>
-                        <input type="date" name="start_date" id="start_date" class="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-colors" value="{{ old('start_date', $rental->start_date) }}" required onchange="calculateRental()">
+                        <input type="date" name="start_date" id="start_date" class="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-colors" value="{{ old('start_date', $rental->start_date) }}" required>
                     </div>
 
-                    <!-- Duration -->
+                    <!-- End Date (Editable for Terminations) -->
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Durasi Sewa (Bulan)</label>
-                        <input type="number" name="duration_months" id="duration_months" class="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-colors" value="{{ $duration }}" min="1" required oninput="calculateRental()">
-                    </div>
-
-                    <!-- End Date (Read-only) -->
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Tanggal Selesai (Otomatis)</label>
-                        <input type="date" name="end_date" id="end_date" class="w-full rounded-xl border-slate-100 bg-slate-50 text-slate-500 cursor-not-allowed" value="{{ old('end_date', $rental->end_date) }}" readonly>
-                    </div>
-
-                    <!-- Total Price (Read-only) -->
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Total Harga</label>
-                        <input type="text" id="total_price_display" class="w-full rounded-xl border-slate-100 bg-slate-50 text-slate-800 font-bold cursor-not-allowed" value="Rp {{ number_format($rental->total_price, 0, ',', '.') }}" readonly>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Tanggal Berakhir (Rencana Keluar)</label>
+                        <input type="date" name="end_date" id="end_date" class="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-colors bg-amber-50" value="{{ old('end_date', $rental->end_date) }}" required>
+                        <p class="mt-1 text-[10px] text-amber-600 font-bold uppercase tracking-wider">Sesuaikan tanggal ini jika penghuni akan keluar lebih awal atau lewat masa sewa.</p>
                     </div>
 
                     <!-- Status -->
-                    <div class="md:col-span-2">
+                    <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Status Sewa</label>
                         <select name="status" class="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-colors">
                             <option value="active" {{ old('status', $rental->status) == 'active' ? 'selected' : '' }}>Active</option>
                             <option value="finished" {{ old('status', $rental->status) == 'finished' ? 'selected' : '' }}>Finished</option>
                         </select>
                     </div>
+
+                    <!-- Monthly Price -->
+                    <div>
+                        <label class="block text-sm font-bold text-blue-700 mb-2">Harga Sewa Bulanan (Rp)</label>
+                        <input type="number" name="monthly_price" class="w-full rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 transition-colors font-bold text-blue-700 bg-blue-50" value="{{ old('monthly_price', $rental->monthly_price) }}" required>
+                        <p class="mt-1 text-[10px] text-blue-600 font-bold uppercase tracking-wider">Ubah nominal ini untuk menerapkan kenaikan harga sewa bagi penyewa ini.</p>
+                    </div>
                 </div>
 
                 <!-- Submit -->
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-end">
                     <button type="submit" class="inline-flex items-center px-6 py-3 bg-amber-600 border border-transparent rounded-xl font-bold text-base text-white uppercase tracking-widest hover:bg-amber-700 active:bg-amber-900 focus:outline-none focus:border-amber-900 focus:ring ring-amber-300 transition ease-in-out duration-150 shadow-lg shadow-amber-200">
-                        Update Data Sewa
+                        Update Data Sewa & Terminasi
                     </button>
                 </div>
             </form>
         </div>
     </div>
-
-    <script>
-        function calculateRental() {
-            const roomSelect = document.getElementById('room_id');
-            const startDateInput = document.getElementById('start_date');
-            const durationInput = document.getElementById('duration_months');
-            const endDateInput = document.getElementById('end_date');
-            const totalPriceDisplay = document.getElementById('total_price_display');
-
-            if (roomSelect.value && startDateInput.value && durationInput.value) {
-                const price = parseFloat(roomSelect.options[roomSelect.selectedIndex].getAttribute('data-price'));
-                const duration = parseInt(durationInput.value);
-
-                const total = price * duration;
-                totalPriceDisplay.value = 'Rp ' + total.toLocaleString('id-ID');
-
-                const startDate = new Date(startDateInput.value);
-                startDate.setMonth(startDate.getMonth() + duration);
-                
-                const yyyy = startDate.getFullYear();
-                const mm = String(startDate.getMonth() + 1).padStart(2, '0');
-                const dd = String(startDate.getDate()).padStart(2, '0');
-                endDateInput.value = `${yyyy}-${mm}-${dd}`;
-            } else {
-                endDateInput.value = '';
-                totalPriceDisplay.value = '';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', calculateRental);
-    </script>
 </x-app-layout>
