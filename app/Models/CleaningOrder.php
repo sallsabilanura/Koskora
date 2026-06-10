@@ -19,6 +19,10 @@ class CleaningOrder extends Model
         'notes',
         'payment_status',
         'payment_proof',
+        'snap_token',
+        'transaction_id',
+        'commission_amount',
+        'partner_amount',
     ];
 
     protected $casts = [

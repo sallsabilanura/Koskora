@@ -11,10 +11,25 @@ class Tenants extends Model
 
     protected $fillable = [
         'user_id',
+        'nama_lengkap',
+        'nama_panggilan',
         'nik',
+        'jenis_kelamin',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'nomor_whatsapp',
+        'alamat_ktp',
         'address',
+        'rt',
+        'rw',
+        'province',
+        'city',
+        'district',
+        'village',
         'occupation',
         'emergency_contact',
+        'foto_ktp',
+        'foto_diri',
         'status',
     ];
 
@@ -26,5 +41,10 @@ class Tenants extends Model
     public function rentals()
     {
         return $this->hasMany(Rental::class, 'tenant_id');
+    }
+
+    public function rentPayments()
+    {
+        return $this->hasMany(RentPayment::class, 'tenants_id');
     }
 }

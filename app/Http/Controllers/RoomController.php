@@ -12,10 +12,63 @@ class RoomController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $rooms = Room::latest()->get();
-        return view('rooms.index', compact('rooms'));
+        $user = auth()->user();
+        $isSuperAdmin = $user->isSuperAdmin();
+        $adminDistrict = $isSuperAdmin ? null : $user->district;
+
+        $query = Room::latest();
+
+        // Scope to admin's district unless superadmin
+        if ($adminDistrict) {
+            $query->where('district', $adminDistrict);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('room_number', 'like', "%{$search}%")
+                  ->orWhere('room_type', 'like', "%{$search}%")
+                  ->orWhere('property_name', 'like', "%{$search}%")
+                  ->orWhere('district', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->get('status'));
+        }
+
+        if ($request->filled('district') && $isSuperAdmin) {
+            $query->where('district', $request->get('district'));
+        }
+
+        $rooms = $query->paginate(10);
+
+        // Districts dropdown: superadmin sees all, regional admin sees only their own
+        $districtsQuery = Room::select('district', \DB::raw('count(*) as count'))
+            ->whereNotNull('district')
+            ->groupBy('district')
+            ->orderBy('district');
+
+        if ($adminDistrict) {
+            $districtsQuery->where('district', $adminDistrict);
+        }
+
+        $districts = $districtsQuery->get();
+
+        $statsQuery = Room::query();
+        if ($adminDistrict) {
+            $statsQuery->where('district', $adminDistrict);
+        }
+        $stats = [
+            'total'     => (clone $statsQuery)->count(),
+            'available' => (clone $statsQuery)->where('status', 'available')->count(),
+            'occupied'  => (clone $statsQuery)->where('status', 'occupied')->count(),
+        ];
+
+        return view('rooms.index', compact('rooms', 'stats', 'districts'));
     }
 
     /**
@@ -23,9 +76,11 @@ class RoomController extends Controller
      */
     public function create()
     {
+        $user = auth()->user();
         $assets = Asset::all();
         $propertyNames = Room::whereNotNull('property_name')->distinct()->pluck('property_name');
-        return view('rooms.create', compact('assets', 'propertyNames'));
+        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+        return view('rooms.create', compact('assets', 'propertyNames', 'adminDistrict'));
     }
 
     /**
@@ -38,7 +93,7 @@ class RoomController extends Controller
             'room_number' => 'required|string|max:255|unique:rooms,room_number',
             'room_type' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'status' => 'required|in:available,occupied,maintenance',
+            'status' => 'nullable|in:available,occupied,maintenance',
             'province' => 'required|string',
             'city' => 'required|string',
             'district' => 'required|string',
@@ -50,6 +105,10 @@ class RoomController extends Controller
             'assets.*' => 'exists:assets,id',
             'picture' => 'nullable|array',
             'picture.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'discount_percentage' => 'nullable|integer|min:0|max:100',
+            'discount_label' => 'nullable|string|max:255',
+            'discount_start' => 'nullable|date',
+            'discount_end' => 'nullable|date|after_or_equal:discount_start',
         ]);
 
         $picturesPaths = [];
@@ -61,11 +120,19 @@ class RoomController extends Controller
         }
 
         $validatedData['picture'] = $picturesPaths;
+        $validatedData['discount_percentage'] = $validatedData['discount_percentage'] ?? 0;
+        $validatedData['status'] = $validatedData['status'] ?? 'available';
 
         $room = Room::create($validatedData);
 
         if ($request->has('assets')) {
             $room->assets()->sync($request->assets);
+        }
+
+        // For regional admin, lock district to their own district
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && $user->district) {
+            $room->update(['district' => $user->district]);
         }
 
         return redirect()->route('rooms.index')->with('success', 'Data kamar berhasil ditambahkan.');
@@ -84,10 +151,12 @@ class RoomController extends Controller
      */
     public function edit(Room $room)
     {
+        $user = auth()->user();
         $assets = Asset::all();
         $room->load('assets');
         $propertyNames = Room::whereNotNull('property_name')->distinct()->pluck('property_name');
-        return view('rooms.edit', compact('room', 'assets', 'propertyNames'));
+        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+        return view('rooms.edit', compact('room', 'assets', 'propertyNames', 'adminDistrict'));
     }
 
     /**
@@ -112,6 +181,10 @@ class RoomController extends Controller
             'assets.*' => 'exists:assets,id',
             'picture' => 'nullable|array',
             'picture.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'discount_percentage' => 'nullable|integer|min:0|max:100',
+            'discount_label' => 'nullable|string|max:255',
+            'discount_start' => 'nullable|date',
+            'discount_end' => 'nullable|date|after_or_equal:discount_start',
         ]);
 
         $currentPictures = $room->picture ?? [];
@@ -129,7 +202,15 @@ class RoomController extends Controller
             $validatedData['picture'] = $currentPictures;
         }
 
+        $validatedData['discount_percentage'] = $validatedData['discount_percentage'] ?? 0;
+
         $room->update($validatedData);
+
+        // For regional admin, lock district to their own district
+        $adminUser = auth()->user();
+        if (!$adminUser->isSuperAdmin() && $adminUser->district) {
+            $room->update(['district' => $adminUser->district]);
+        }
 
         if ($request->has('assets')) {
             $room->assets()->sync($request->assets);

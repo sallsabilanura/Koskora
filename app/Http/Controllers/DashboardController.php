@@ -15,20 +15,41 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->isAdmin()) {
-            $totalRooms = Room::count();
-            $availableRooms = Room::where('status', 'available')->count();
-            $occupiedRooms = Room::where('status', 'occupied')->count();
-            $totalTenants = Tenants::count();
-            $totalRevenue = RentPayment::where('status', 'paid')->sum('amount');
-            
-            $recentPayments = RentPayment::with(['rental', 'tenants', 'room'])
-                ->orderBy('payment_date', 'desc')
-                ->limit(5)
+        if ($user->isAnyAdmin()) {
+            $isSuperAdmin = $user->isSuperAdmin();
+            $district = $user->district; // null for superadmin
+
+            // Scope query: superadmin sees all, regional admin sees only their district
+            $roomQuery      = Room::query();
+            $rentalQuery    = Rental::query();
+            $paymentQuery   = RentPayment::query();
+            $tenantQuery    = Tenants::query();
+
+            if (!$isSuperAdmin && $district) {
+                $roomQuery->where('district', $district);
+                $districtRoomIds = (clone $roomQuery)->pluck('id');
+                $rentalQuery->whereIn('room_id', $districtRoomIds);
+                $paymentQuery->whereIn('room_id', $districtRoomIds);
+                $tenantQuery->whereHas('rentals', function ($q) use ($districtRoomIds) {
+                    $q->whereIn('room_id', $districtRoomIds);
+                });
+            }
+
+            $totalRooms     = (clone $roomQuery)->count();
+            $availableRooms = (clone $roomQuery)->where('status', 'available')->count();
+            $occupiedRooms  = (clone $roomQuery)->where('status', 'occupied')->count();
+            $totalTenants   = (clone $tenantQuery)->count();
+            $totalRevenue   = (clone $paymentQuery)->where('status', 'paid')->sum('amount');
+
+            $recentPayments = (clone $paymentQuery)->with(['rental', 'tenants', 'room'])
+                ->latest()
+                ->take(5)
                 ->get();
-            
-            $announcementsCount = \App\Models\Announcement::count();
- 
+
+            $announcementsCount  = \App\Models\Announcement::count();
+            $pendingRentalsCount  = (clone $rentalQuery)->where('status', 'pending')->count();
+            $pendingPaymentsCount = (clone $paymentQuery)->where('status', 'pending')->count();
+
             return view('dashboard', compact(
                 'totalRooms',
                 'availableRooms',
@@ -36,12 +57,17 @@ class DashboardController extends Controller
                 'totalTenants',
                 'totalRevenue',
                 'recentPayments',
-                'announcementsCount'
+                'announcementsCount',
+                'pendingRentalsCount',
+                'pendingPaymentsCount',
+                'isSuperAdmin'
             ));
         } elseif ($user->isLaundry()) {
             return redirect()->route('laundry.orders.index');
         } elseif ($user->isCleaner()) {
             return redirect()->route('cleaner.orders.index');
+        } elseif ($user->isSecurity()) {
+            return redirect()->route('security.dashboard');
         } else {
             // User view (Tenant)
             $tenant = $user->tenant;
@@ -88,7 +114,17 @@ class DashboardController extends Controller
                 ->limit(3)
                 ->get();
             
-            return view('dashboard_user', compact('tenant', 'myRentals', 'myPayments', 'activeRental', 'currentPaymentStatus', 'announcements'));
+            $unreadAnnouncementsCount = $announcements->count(); // Simplification: count active ones as "new"
+            
+            return view('dashboard_user', compact(
+                'tenant', 
+                'myRentals', 
+                'myPayments', 
+                'activeRental', 
+                'currentPaymentStatus', 
+                'announcements',
+                'unreadAnnouncementsCount'
+            ));
         }
     }
 }

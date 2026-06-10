@@ -22,6 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
+        'district',
     ];
 
     /**
@@ -44,9 +45,19 @@ class User extends Authenticatable implements MustVerifyEmail
         'password' => 'hashed',
     ];
 
+    public function isSuperAdmin()
+    {
+        return $this->role === 'superadmin';
+    }
+
     public function isAdmin()
     {
         return $this->role === 'admin';
+    }
+
+    public function isAnyAdmin()
+    {
+        return in_array($this->role, ['admin', 'superadmin']);
     }
 
     public function isUser()
@@ -64,6 +75,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'cleaner';
     }
 
+    public function isSecurity()
+    {
+        return $this->role === 'security';
+    }
+
     public function tenant()
     {
         return $this->hasOne(Tenants::class, 'user_id');
@@ -77,5 +93,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function cleaner()
     {
         return $this->hasOne(Cleaner::class, 'user_id');
+    }
+
+    public function securityReports()
+    {
+        return $this->hasMany(SecurityReport::class, 'user_id');
+    }
+
+    public function securityShifts()
+    {
+        return $this->hasMany(SecurityShift::class, 'user_id');
     }
 }

@@ -17,6 +17,55 @@
             </p>
         </div>
 
+        <!-- Payment Instructions Card (Modern Style) -->
+        <div class="mb-10 bg-slate-900 rounded-[2.5rem] p-6 md:p-10 text-white shadow-2xl relative overflow-hidden group/pay">
+            <div class="relative z-10">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/50">
+                        <i class="fas fa-university text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-black tracking-tight uppercase leading-none mb-1">Instruksi Pembayaran</h4>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Silakan transfer ke rekening berikut</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="p-6 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all duration-300 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="text-center md:text-left">
+                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-3">Transfer Bank (BCA)</span>
+                            <div class="text-3xl md:text-4xl font-black tracking-[0.1em] mb-2 text-white">2222 9827 27</div>
+                            <div class="text-xs font-bold text-blue-400 uppercase tracking-[0.2em]">A/N KOSKORA</div>
+                        </div>
+                        <button onclick="copyToClipboard('2222982727')" class="px-6 py-3 bg-white/10 hover:bg-white text-slate-400 hover:text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2">
+                            <i class="fas fa-copy"></i>
+                            Salin Nomor
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex items-start gap-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+                    <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-info text-[10px] text-white"></i>
+                    </div>
+                    <p class="text-[11px] font-bold text-blue-200 uppercase tracking-wide leading-relaxed">
+                        Mohon pastikan nominal sesuai dengan tagihan dan simpan bukti transfer untuk diunggah pada formulir di bawah ini.
+                    </p>
+                </div>
+            </div>
+            <!-- Decorative elements -->
+            <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-600 opacity-20 blur-[80px] rounded-full"></div>
+            <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-600 opacity-10 blur-[80px] rounded-full"></div>
+        </div>
+
+        <script>
+            function copyToClipboard(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Nomor rekening berhasil disalin!');
+                });
+            }
+        </script>
+
         @if ($errors->any())
             <div class="mb-8 p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl shadow-sm">
                 <div class="flex items-center gap-2 mb-2">

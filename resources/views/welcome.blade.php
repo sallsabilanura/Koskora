@@ -99,7 +99,7 @@
                 <a href="/">
                     <img src="{{ asset('koskora.png') }}" alt="KosKora Logo" class="h-8 w-auto md:h-10">
                 </a>
-                <span class="text-[10px] font-bold tracking-[0.2em] text-slate-400 hidden sm:block border-l border-slate-200 pl-3 uppercase">Premium Living</span>
+                <span class="text-[10px] font-bold tracking-[0.2em] text-slate-500 hidden sm:block border-l border-slate-200 pl-3 uppercase">Premium Living</span>
             </div>
             
             <div class="hidden md:flex items-center gap-8">
@@ -184,15 +184,23 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="flex-1">
+                        <select name="district" class="w-full px-5 py-4 rounded-xl input-modern font-medium text-sm cursor-pointer appearance-none">
+                            <option value="">Semua Daerah</option>
+                            @foreach($districts as $district)
+                                <option value="{{ $district }}" {{ request('district') == $district ? 'selected' : '' }}>{{ $district }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <button type="submit" class="w-full md:w-auto px-8 md:px-12 py-4 bg-brand-navy text-white rounded-xl font-bold text-sm uppercase tracking-wider hover:bg-brand-red transition-all shadow-md">Jelajahi</button>
                 </form>
             </div>
             
             <!-- quick stats -->
             <div class="flex flex-wrap justify-center gap-8 mt-14">
-                <div><span class="font-extrabold text-2xl text-brand-navy">150+</span><span class="text-xs font-semibold text-slate-400 block uppercase">Unit Premium</span></div>
-                <div><span class="font-extrabold text-2xl text-brand-navy">12</span><span class="text-xs font-semibold text-slate-400 block uppercase">Kota Besar</span></div>
-                <div><span class="font-extrabold text-2xl text-brand-navy">99%</span><span class="text-xs font-semibold text-slate-400 block uppercase">Kepuasan Tenant</span></div>
+                <div><span class="font-extrabold text-2xl text-brand-navy">150+</span><span class="text-xs font-semibold text-slate-500 block uppercase">Unit Premium</span></div>
+                <div><span class="font-extrabold text-2xl text-brand-navy">12</span><span class="text-xs font-semibold text-slate-500 block uppercase">Kota Besar</span></div>
+                <div><span class="font-extrabold text-2xl text-brand-navy">99%</span><span class="text-xs font-semibold text-slate-500 block uppercase">Kepuasan Tenant</span></div>
             </div>
         </div>
     </section>
@@ -220,10 +228,28 @@
                                     <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 </div>
                             @endif
-                            <div class="absolute top-4 left-4 flex gap-2">
-                                <span class="px-3 py-1.5 bg-brand-navy text-white text-[10px] font-bold rounded-full shadow-md uppercase tracking-widest">
+                            <div class="absolute top-4 left-4 flex flex-col gap-2">
+                                <span class="px-3 py-1.5 bg-brand-navy text-white text-[10px] font-bold rounded-full shadow-md uppercase tracking-widest self-start">
                                     {{ $property->gender }}
                                 </span>
+                                @if($property->has_discount)
+                                    <div class="flex flex-col gap-1">
+                                        <span class="px-3 py-1.5 bg-brand-red text-white text-[10px] font-black rounded-full shadow-lg uppercase tracking-widest animate-pulse self-start">
+                                            {{ $property->max_discount }}% OFF
+                                        </span>
+                                        @if($property->discount_label)
+                                            <span class="px-2 py-1 bg-white/90 backdrop-blur text-brand-red text-[8px] font-black rounded-md shadow-sm uppercase tracking-tighter self-start border border-brand-red/20">
+                                                {{ $property->discount_label }}
+                                            </span>
+                                        @endif
+                                        @if($property->discount_end)
+                                            <span class="px-2 py-1 bg-brand-navy/80 backdrop-blur text-white text-[7px] font-bold rounded-md shadow-sm uppercase tracking-wider self-start flex items-center gap-1">
+                                                <i class="fas fa-clock text-[6px]"></i>
+                                                Hingga {{ $property->discount_end->format('d M') }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                             <div class="absolute bottom-4 left-4 right-4 capitalize">
                                 <div class="px-4 py-2 bg-white/90 backdrop-blur-md rounded-2xl shadow-lg flex items-center justify-between border border-white/50">
@@ -250,10 +276,17 @@
                             
                             <div class="flex items-center justify-between pt-5 border-t border-slate-50 mt-auto">
                                 <div>
-                                    <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest">Mulai dari</p>
-                                    <p class="text-xl font-extrabold text-brand-navy">Rp {{ number_format($property->min_price / 1000, 1, '.', '') }}jt<span class="text-xs text-slate-400 font-normal">/bln</span></p>
+                                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Mulai dari</p>
+                                    @if($property->has_discount)
+                                        <div class="flex flex-col">
+                                            <span class="text-[10px] text-slate-400 line-through font-bold">Rp {{ number_format($property->min_price, 0, ',', '.') }}</span>
+                                            <p class="text-xl font-extrabold text-brand-red">Rp {{ number_format($property->min_discounted_price, 0, ',', '.') }}<span class="text-xs text-slate-400 font-normal">/bln</span></p>
+                                        </div>
+                                    @else
+                                        <p class="text-xl font-extrabold text-brand-navy">Rp {{ number_format($property->min_price, 0, ',', '.') }}<span class="text-xs text-slate-400 font-normal">/bln</span></p>
+                                    @endif
                                 </div>
-                                <button onclick="openPropertyModal({{ json_encode($property) }})" class="px-8 py-3 bg-brand-navy text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-brand-red transition shadow-sm active:scale-95">Lihat Detail</button>
+                                <a href="{{ route('property.show', urlencode($property->name)) }}" class="px-8 py-3 bg-brand-navy text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-brand-red transition shadow-sm active:scale-95 inline-block">Lihat Detail</a>
                             </div>
                         </div>
                     </div>
@@ -263,7 +296,13 @@
                     </div>
                 @endforelse
             </div>
-            <div class="text-center mt-14 text-slate-400 text-[11px] font-semibold uppercase tracking-wider">✅ 100% unit terverifikasi oleh tim KosKora</div>
+
+            {{-- PAGINATION --}}
+            <div class="mt-12 flex justify-center">
+                {{ $groupedRooms->appends(request()->query())->links() }}
+            </div>
+
+            <div class="text-center mt-10 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">✅ 100% unit terverifikasi oleh tim KosKora</div>
         </div>
     </section>
 
@@ -350,9 +389,9 @@
                 <h2 class="text-4xl md:text-5xl font-extrabold text-brand-navy mt-3 leading-tight">Bukan sekadar kos, <br>tapi <span class="text-brand-red">gaya hidup premium.</span></h2>
                 <p class="text-slate-500 mt-8 leading-relaxed font-medium">Kami menyatukan teknologi, kebersihan standar hotel, dan akses layanan instan. Setiap properti telah melalui kurasi desain, keamanan, dan konektivitas terbaik untuk profesional muda & ekspat.</p>
                 <div class="mt-10 flex flex-wrap gap-8">
-                    <div><span class="font-extrabold text-3xl text-brand-navy">24/7</span><span class="block text-[10px] font-semibold uppercase text-slate-400 mt-1">SLA Support</span></div>
-                    <div><span class="font-extrabold text-3xl text-brand-navy">+45</span><span class="block text-[10px] font-semibold uppercase text-slate-400 mt-1">Smart Units</span></div>
-                    <div><span class="font-extrabold text-3xl text-brand-navy">4.9★</span><span class="block text-[10px] font-semibold uppercase text-slate-400 mt-1">User Rating</span></div>
+                    <div><span class="font-extrabold text-3xl text-brand-navy">24/7</span><span class="block text-[10px] font-semibold uppercase text-slate-500 mt-1">SLA Support</span></div>
+                    <div><span class="font-extrabold text-3xl text-brand-navy">+45</span><span class="block text-[10px] font-semibold uppercase text-slate-500 mt-1">Smart Units</span></div>
+                    <div><span class="font-extrabold text-3xl text-brand-navy">4.9★</span><span class="block text-[10px] font-semibold uppercase text-slate-500 mt-1">User Rating</span></div>
                 </div>
                 <button class="mt-12 px-10 py-4 bg-brand-navy text-white rounded-xl text-[12px] font-bold shadow-lg hover:bg-brand-red transition-all uppercase tracking-widest">Gabung Jadi Mitra</button>
             </div>
@@ -365,78 +404,6 @@
         </div>
     </section>
     
-    <!-- ========== MODAL SECTION (PROPERTY DETAIL) ========== -->
-    <div id="propertyModal" class="fixed inset-0 z-[200] hidden overflow-y-auto" role="dialog" aria-modal="true">
-        <div class="flex items-end sm:items-center justify-center min-h-screen px-0 sm:px-4 py-0 sm:py-12 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onclick="closePropertyModal()"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-
-            <div class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl w-full relative border border-slate-100 max-h-[95vh] sm:max-h-none overflow-y-auto">
-                <button onclick="closePropertyModal()" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 p-2.5 bg-white shadow-xl rounded-2xl text-brand-navy hover:bg-brand-red hover:text-white transition-all">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-
-                <div class="grid grid-cols-1 lg:grid-cols-5">
-                    <!-- Right Side: Units & Reviews -->
-                    <div class="lg:col-span-3 p-6 sm:p-12 order-2 lg:order-1 overflow-y-auto">
-                        <div class="flex justify-between items-start mb-8">
-                            <div>
-                                <span id="propGender" class="px-3 py-1 bg-brand-navy/10 text-brand-navy text-[9px] font-black uppercase tracking-widest rounded-full mb-3 inline-block"></span>
-                                <h3 id="propTitle" class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-none mb-4"></h3>
-                                <div id="propLocation" class="flex items-center text-[10px] font-black text-slate-400 uppercase tracking-widest flex-wrap gap-2">
-                                    <i class="fas fa-location-dot text-brand-red"></i>
-                                    <span></span>
-                                    <div class="flex items-center gap-1.5 ml-4 px-2 py-1 bg-amber-50 text-amber-600 rounded-lg">
-                                        <i class="fas fa-star text-[10px]"></i>
-                                        <span id="propRatingScore" class="font-bold"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Available Units -->
-                        <div class="mb-12">
-                            <div class="flex items-center justify-between mb-6">
-                                <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Pilihan Unit Tersedia</h4>
-                                <span class="h-[1px] flex-1 bg-slate-50 mx-4"></span>
-                            </div>
-                            <div id="propRooms" class="space-y-4">
-                                <!-- Dynamic room rows -->
-                            </div>
-                        </div>
-
-                        <!-- Property Reviews -->
-                        <div>
-                            <div class="flex items-center justify-between mb-8">
-                                <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Ulasan Penghuni</h4>
-                                <span class="h-[1px] flex-1 bg-slate-50 mx-4"></span>
-                            </div>
-                            <div id="propReviews" class="space-y-6">
-                                <!-- Dynamic reviews -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Left Side: Image & Stats (Sticky-ish) -->
-                    <div class="lg:col-span-2 bg-slate-50 p-6 lg:order-2 flex flex-col h-full lg:sticky lg:top-0">
-                        <div class="flex-1 rounded-3xl overflow-hidden shadow-2xl relative group mb-6">
-                            <img id="propMainImg" src="" class="w-full h-full object-cover transition duration-1000 group-hover:scale-105">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                        </div>
-                        
-                        <!-- Facilities Highlight -->
-                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                             <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-6">Fasilitas Kos</h4>
-                             <div id="propAssets" class="grid grid-cols-2 gap-y-4 gap-x-2">
-                                 <!-- Dynamic assets -->
-                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- ========== FOOTER ========== -->
     <footer class="border-t border-slate-100 py-12 px-6 bg-white">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
@@ -454,138 +421,5 @@
         <div class="text-center text-[9px] text-slate-300 mt-12 uppercase tracking-[0.3em]">Premium Living, Simplified.</div>
     </footer>
 
-    <script>
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const modal = document.getElementById('propertyModal');
-        const mainImg = document.getElementById('propMainImg');
-        const title = document.getElementById('propTitle');
-        const gender = document.getElementById('propGender');
-        const loc = document.getElementById('propLocation').querySelector('span');
-        const ratingScore = document.getElementById('propRatingScore');
-        const roomsContainer = document.getElementById('propRooms');
-        const reviewsContainer = document.getElementById('propReviews');
-        const assetsContainer = document.getElementById('propAssets');
-
-        function openPropertyModal(prop) {
-            title.innerText = prop.name;
-            gender.innerText = 'KHUSUS ' + prop.gender.toUpperCase();
-            loc.innerText = prop.location.toUpperCase();
-            ratingScore.innerText = Number(prop.avg_rating).toFixed(1) + ' (' + prop.total_reviews + ' ulasan)';
-            mainImg.src = prop.thumbnail ? '/storage/' + prop.thumbnail : 'https://placehold.co/800x600?text=Premium+Living';
-
-            // Distinct Assets (Facilities)
-            assetsContainer.innerHTML = '';
-            let allAssets = [];
-            prop.rooms.forEach(r => {
-                if(r.assets) allAssets = [...allAssets, ...r.assets];
-            });
-            // Unique by name
-            const uniqueAssets = Array.from(new Map(allAssets.map(a => [a.name, a])).values()).slice(0, 8);
-            
-            uniqueAssets.forEach(asset => {
-                const item = document.createElement('div');
-                item.className = 'flex items-center gap-2.5 group';
-                item.innerHTML = `
-                    <div class="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center text-brand-navy border border-slate-100 group-hover:bg-brand-navy group-hover:text-white transition-colors">
-                        <i class="${asset.icon || 'fas fa-check'} text-[10px]"></i>
-                    </div>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wide group-hover:text-slate-900 transition-colors">${asset.name}</span>
-                `;
-                assetsContainer.appendChild(item);
-            });
-
-            // Units List
-            roomsContainer.innerHTML = '';
-            prop.rooms.forEach(room => {
-                const row = document.createElement('div');
-                row.className = "group/row p-6 bg-slate-50/50 rounded-2xl border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6 hover:border-brand-navy/30 hover:bg-white hover:shadow-xl transition-all duration-300";
-                
-                let assetsHtml = '';
-                if(room.assets) {
-                    room.assets.slice(0, 3).forEach(a => {
-                        assetsHtml += `<span class="px-2 py-0.5 bg-white border border-slate-100 rounded-md text-[8px] font-bold text-slate-400 uppercase tracking-tighter mr-1 shadow-sm">${a.name}</span>`;
-                    });
-                    if(room.assets.length > 3) assetsHtml += `<span class="text-[8px] font-black text-slate-300 uppercase">+${room.assets.length - 3}</span>`;
-                }
-
-                row.innerHTML = `
-                    <div class="flex items-center gap-5">
-                        <div class="w-16 h-16 rounded-xl overflow-hidden border border-white shadow-md flex-shrink-0">
-                            <img src="${room.picture ? '/storage/'+room.picture[0] : 'https://placehold.co/100x100?text=Unit'}" class="w-full h-full object-cover">
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2 mb-1.5">
-                                <h5 class="text-base font-black text-slate-900 uppercase">Room #${room.room_number}</h5>
-                                <span class="px-2 py-0.5 bg-brand-navy text-white text-[8px] font-black uppercase rounded shadow-sm">${room.room_type}</span>
-                                <span class="text-[9px] font-bold ${room.status == 'available' ? 'text-emerald-500' : 'text-rose-500'} uppercase underline-offset-4 decoration-2">${room.status == 'available' ? 'Tersedia' : 'Penuh'}</span>
-                            </div>
-                            <div class="flex items-center opacity-70 group-hover/row:opacity-100 transition-opacity">
-                                ${assetsHtml}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-8">
-                        <div class="text-right">
-                            <p class="text-sm font-black text-brand-navy">Rp ${new Intl.NumberFormat('id-ID').format(room.price)}<span class="text-[10px] text-slate-400 font-medium">/bln</span></p>
-                        </div>
-                        ${room.status == 'available' ? `
-                            <form action="/bookings/${room.id}/rent" method="POST">
-                                <input type="hidden" name="_token" value="${csrfToken}">
-                                <button type="submit" class="px-8 py-3 bg-brand-navy text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-brand-red transition shadow-lg active:scale-95">SEWA UNIT</button>
-                            </form>
-                        ` : `
-                            <button disabled class="px-8 py-3 bg-slate-200 text-slate-400 text-[9px] font-black uppercase tracking-widest rounded-xl cursor-not-allowed">FULL UNIT</button>
-                        `}
-                    </div>
-                `;
-                roomsContainer.appendChild(row);
-            });
-
-            // Reviews List
-            reviewsContainer.innerHTML = '';
-            let allPropReviews = [];
-            prop.rooms.forEach(r => {
-                if(r.reviews) allPropReviews = [...allPropReviews, ...r.reviews];
-            });
-
-            if(allPropReviews.length > 0) {
-                allPropReviews.slice(0, 5).forEach(rev => {
-                    const revDiv = document.createElement('div');
-                    revDiv.className = "p-6 bg-slate-50/20 border border-slate-100 rounded-3xl group/rev hover:border-brand-navy/20 transition-all";
-                    const initial = rev.is_anonymous ? 'A' : (rev.user ? rev.user.name.charAt(0) : 'U');
-                    const reviewer = rev.is_anonymous ? 'Penghuni Anonim' : (rev.user ? rev.user.name : 'Penghuni');
-                    
-                    revDiv.innerHTML = `
-                        <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-brand-navy text-white flex items-center justify-center font-black text-xs shadow-md">
-                                ${initial}
-                            </div>
-                            <div class="flex-1">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-xs font-black text-slate-900 uppercase tracking-tight">${reviewer}</span>
-                                    <div class="flex text-[8px] text-amber-500">
-                                        ${Array(rev.rating).fill('<i class="fas fa-star"></i>').join('')}
-                                    </div>
-                                </div>
-                                <p class="text-[11px] font-medium text-slate-500 italic leading-relaxed">"${rev.comment}"</p>
-                                <p class="text-[8px] font-black text-slate-300 uppercase tracking-widest mt-2">${new Date(rev.created_at).toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                    `;
-                    reviewsContainer.appendChild(revDiv);
-                });
-            } else {
-                reviewsContainer.innerHTML = '<div class="py-12 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-100 text-center"><p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 lowercase">Belum ada ulasan untuk kos ini</p></div>';
-            }
-
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closePropertyModal() {
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-    </script>
 </body>
 </html>

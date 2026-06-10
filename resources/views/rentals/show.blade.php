@@ -1,96 +1,259 @@
 <x-app-layout>
     @section('header_title', 'Rental Details')
 
-    <div class="max-w-5xl mx-auto space-y-6">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-slate-800">Detail Sewa Kamar #{{ $rental->id }}</h2>
-            <div class="flex items-center space-x-3">
-                <a href="{{ route('rentals.edit', $rental->id) }}" class="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl font-semibold text-xs text-blue-600 uppercase tracking-widest hover:bg-blue-100 transition ease-in-out duration-150">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    Edit
+    <div class="max-w-6xl mx-auto space-y-8 animate-fade-in">
+        {{-- Header Actions --}}
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-brand/10 text-brand flex items-center justify-center text-xl shadow-sm">
+                    <i class="fas fa-file-contract"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Detail Sewa #{{ $rental->id }}</h2>
+                    <p class="text-slate-500 font-medium text-sm">Dokumentasi lengkap kontrak dan data penyewa.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('rentals.edit', $rental->id) }}" class="btn btn-ghost !px-4">
+                    <i class="fas fa-edit text-xs"></i>
+                    Edit Kontrak
                 </a>
-                <a href="{{ route('rentals.index') }}" class="inline-flex items-center px-4 py-2 bg-slate-100 border border-transparent rounded-xl font-semibold text-xs text-slate-600 uppercase tracking-widest hover:bg-slate-200 transition ease-in-out duration-150">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                <a href="{{ route('rentals.index') }}" class="btn btn-ghost !px-4">
+                    <i class="fas fa-arrow-left text-xs"></i>
                     Kembali
                 </a>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Rental Info -->
-            <div class="lg:col-span-2 space-y-6">
-                <!-- Summary Card -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                        <h3 class="text-lg font-bold text-slate-800">Ringkasan Penyewaan</h3>
-                        <span class="px-4 py-1.5 text-sm font-bold rounded-full {{ $rental->status == 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
-                            {{ ucfirst($rental->status) }}
-                        </span>
-                    </div>
-                    <div class="p-8 space-y-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <!-- Tenant Info -->
-                            <div class="space-y-4">
-                                <div class="flex items-center space-x-3 text-slate-400">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                    <span class="text-xs font-bold uppercase tracking-wider">Informasi Penyewa</span>
-                                </div>
-                                <div class="bg-slate-50 rounded-xl p-5 border border-slate-100">
-                                    <div class="font-bold text-slate-800 text-lg mb-1">{{ $rental->tenant->user->name ?? 'Unknown' }}</div>
-                                    <div class="text-sm text-slate-500 mb-3">NIK: {{ $rental->tenant->nik ?? '-' }}</div>
-                                    <div class="text-sm text-slate-600 leading-relaxed italic border-t border-slate-200 pt-3">
-                                        {{ $rental->tenant->address ?? '-' }}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Room Info -->
-                            <div class="space-y-4">
-                                <div class="flex items-center space-x-3 text-slate-400">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                    <span class="text-xs font-bold uppercase tracking-wider">Informasi Kamar</span>
-                                </div>
-                                <div class="bg-blue-50 rounded-xl p-5 border border-blue-100">
-                                    <div class="font-bold text-blue-900 text-lg mb-1">Kamar {{ $rental->room->room_number ?? '-' }}</div>
-                                    <div class="text-sm text-blue-700 font-medium mb-3">Tipe: {{ $rental->room->room_type ?? '-' }}</div>
-                                    <div class="text-sm text-blue-600 bg-white/50 rounded-lg p-2 border border-blue-100 inline-block font-bold">
-                                        Rp {{ number_format($rental->room->price ?? 0, 0, ',', '.') }} / bln
-                                    </div>
-                                </div>
-                            </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {{-- Main Content --}}
+            <div class="lg:col-span-8 space-y-8">
+                
+                {{-- SECTION 1: PERSONAL DATA --}}
+                <div class="stat-card">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">
+                            <i class="fas fa-user"></i>
                         </div>
+                        <h3 class="font-extrabold text-slate-800 uppercase tracking-wider text-xs">Informasi Pribadi Penyewa</h3>
+                    </div>
 
-                        <!-- Date Info -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-slate-100">
-                            <div>
-                                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mulai Sewa</div>
-                                <div class="text-slate-800 font-semibold italic">{{ \Carbon\Carbon::parse($rental->start_date)->format('d F Y') }}</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Nama Lengkap</p>
+                            <p class="font-bold text-slate-900">{{ $rental->tenant->nama_lengkap ?? ($rental->tenant->user->name ?? '-') }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Nama Panggilan</p>
+                            <p class="font-bold text-slate-900">{{ $rental->tenant->nama_panggilan ?? '-' }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Nomor NIK (KTP)</p>
+                            <p class="font-bold text-brand tracking-wider">{{ $rental->tenant->nik ?? '-' }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Nomor WhatsApp</p>
+                            <p class="font-bold text-emerald-600">
+                                @if($rental->tenant->nomor_whatsapp)
+                                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $rental->tenant->nomor_whatsapp) }}" target="_blank" class="hover:underline">
+                                        <i class="fab fa-whatsapp mr-1"></i> {{ $rental->tenant->nomor_whatsapp }}
+                                    </a>
+                                @else
+                                    -
+                                @endif
+                            </p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Jenis Kelamin</p>
+                            <p class="font-bold text-slate-900">{{ $rental->tenant->jenis_kelamin ?? '-' }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tempat, Tanggal Lahir</p>
+                            <p class="font-bold text-slate-900">
+                                {{ $rental->tenant->tempat_lahir ?? '-' }}, 
+                                {{ $rental->tenant->tanggal_lahir ? \Carbon\Carbon::parse($rental->tenant->tanggal_lahir)->format('d F Y') : '-' }}
+                            </p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pekerjaan</p>
+                            <p class="font-bold text-slate-900">{{ $rental->tenant->occupation ?? '-' }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Kontak Darurat</p>
+                            <p class="font-bold text-rose-600">{{ $rental->tenant->emergency_contact ?? '-' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- SECTION 2: ADDRESS DETAILS --}}
+                <div class="stat-card">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h3 class="font-extrabold text-slate-800 uppercase tracking-wider text-xs">Detail Alamat & Domisili</h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2 space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Alamat Sesuai KTP</p>
+                            <p class="font-medium text-slate-700 leading-relaxed">{{ $rental->tenant->alamat_ktp ?? '-' }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Provinsi</p>
+                            <p class="font-bold text-slate-900">{{ $rental->tenant->province ?? '-' }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Kota / Kabupaten</p>
+                            <p class="font-bold text-slate-900">{{ $rental->tenant->city ?? '-' }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Kecamatan</p>
+                            <p class="font-bold text-slate-900">{{ $rental->tenant->district ?? '-' }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Kelurahan / Desa</p>
+                            <p class="font-bold text-slate-900">{{ $rental->tenant->village ?? '-' }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">RT / RW</p>
+                            <p class="font-bold text-slate-900">RT {{ $rental->tenant->rt ?? '-' }} / RW {{ $rental->tenant->rw ?? '-' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- SECTION 3: DOCUMENTS (PHOTOS) --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {{-- Photo KTP --}}
+                    <div class="stat-card">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm">
+                                <i class="fas fa-id-card"></i>
                             </div>
-                            <div>
-                                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Selesai Sewa</div>
-                                <div class="text-slate-800 font-semibold italic">{{ \Carbon\Carbon::parse($rental->end_date)->format('d F Y') }}</div>
+                            <h3 class="font-extrabold text-slate-800 uppercase tracking-wider text-xs">Foto KTP</h3>
+                        </div>
+                        <div class="aspect-[3/2] rounded-xl bg-slate-100 overflow-hidden border border-slate-200 group relative">
+                            @if($rental->tenant->foto_ktp)
+                                <img src="{{ asset('storage/' . $rental->tenant->foto_ktp) }}" class="w-full h-full object-cover transition-transform group-hover:scale-105">
+                                <a href="{{ asset('storage/' . $rental->tenant->foto_ktp) }}" target="_blank" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-xs uppercase tracking-widest">
+                                    <i class="fas fa-search-plus mr-2"></i> Lihat Fullsize
+                                </a>
+                            @else
+                                <div class="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                                    <i class="fas fa-image text-3xl mb-2"></i>
+                                    <span class="text-[10px] font-black uppercase tracking-widest">Tidak ada foto</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Photo Diri --}}
+                    <div class="stat-card">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">
+                                <i class="fas fa-camera"></i>
                             </div>
-                            <div class="md:text-right">
-                                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Pembayaran</div>
-                                <div class="text-2xl font-black text-blue-600 tracking-tight">Rp {{ number_format($rental->total_price, 0, ',', '.') }}</div>
-                            </div>
+                            <h3 class="font-extrabold text-slate-800 uppercase tracking-wider text-xs">Foto Diri</h3>
+                        </div>
+                        <div class="aspect-[3/2] rounded-xl bg-slate-100 overflow-hidden border border-slate-200 group relative">
+                            @if($rental->tenant->foto_diri)
+                                <img src="{{ asset('storage/' . $rental->tenant->foto_diri) }}" class="w-full h-full object-cover transition-transform group-hover:scale-105">
+                                <a href="{{ asset('storage/' . $rental->tenant->foto_diri) }}" target="_blank" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-xs uppercase tracking-widest">
+                                    <i class="fas fa-search-plus mr-2"></i> Lihat Fullsize
+                                </a>
+                            @else
+                                <div class="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                                    <i class="fas fa-image text-3xl mb-2"></i>
+                                    <span class="text-[10px] font-black uppercase tracking-widest">Tidak ada foto</span>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Action/Next Card -->
-            <div class="space-y-6">
-                <div class="bg-emerald-600 rounded-2xl p-8 text-white shadow-xl shadow-emerald-100 relative overflow-hidden">
-                    <svg class="absolute -right-4 -bottom-4 w-32 h-32 text-emerald-500 opacity-30" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                    <h3 class="text-xl font-bold mb-4 italic">Status Aktif</h3>
-                    <p class="text-emerald-100 text-sm mb-8 leading-relaxed">Penyewaan ini sedang berjalan. Pastikan tagihan bulanan dikelola dengan tepat waktu.</p>
-                    
-                    <a href="{{ route('rent-payments.index', ['rental_id' => $rental->id]) }}" class="inline-flex items-center w-full justify-center px-6 py-3 bg-white text-emerald-700 rounded-xl font-bold text-sm hover:bg-emerald-50 transition-colors">
-                        Lihat Riwayat Bayar
-                    </a>
+            {{-- Sidebar Content --}}
+            <div class="lg:col-span-4 space-y-8">
+                {{-- Rental Status --}}
+                <div class="stat-card !bg-brand !border-none text-white overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10">
+                        <i class="fas fa-check-circle text-[120px]"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 mb-2">Status Kontrak</div>
+                        <div class="text-3xl font-black mb-4 uppercase">{{ $rental->status }}</div>
+                        <div class="text-sm text-white/80 leading-relaxed mb-6">
+                            @if($rental->status == 'active')
+                                Kontrak sedang berjalan dan aktif. Seluruh fasilitas dapat digunakan oleh penyewa.
+                            @elseif($rental->status == 'pending')
+                                Menunggu persetujuan admin untuk memulai masa sewa.
+                            @else
+                                Kontrak telah selesai atau tidak aktif.
+                            @endif
+                        </div>
+                        <a href="{{ route('rent-payments.index', ['rental_id' => $rental->id]) }}" class="btn !bg-white !text-brand w-full">
+                            <i class="fas fa-credit-card"></i>
+                            Riwayat Pembayaran
+                        </a>
+                    </div>
                 </div>
+
+                {{-- Room Details --}}
+                <div class="stat-card">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm">
+                            <i class="fas fa-door-open"></i>
+                        </div>
+                        <h3 class="font-extrabold text-slate-800 uppercase tracking-wider text-xs">Unit Properti</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                            <div class="text-2xl font-black text-slate-900 mb-1">UNIT #{{ $rental->room->room_number ?? '-' }}</div>
+                            <div class="text-[10px] font-black text-brand uppercase tracking-widest">{{ $rental->room->room_type ?? 'Standard' }} Room</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-3 rounded-xl border border-slate-100">
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Harga / Bln</p>
+                                <p class="font-bold text-slate-900">Rp {{ number_format($rental->room->price ?? 0, 0, ',', '.') }}</p>
+                            </div>
+                            <div class="p-3 rounded-xl border border-slate-100">
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Nilai</p>
+                                <p class="font-bold text-brand">Rp {{ number_format($rental->total_price, 0, ',', '.') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Period --}}
+                <div class="stat-card">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-sm">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h3 class="font-extrabold text-slate-800 uppercase tracking-wider text-xs">Periode Sewa</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-0.5 h-12 bg-slate-100 relative mt-2">
+                                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-emerald-500"></div>
+                                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-rose-500"></div>
+                            </div>
+                            <div class="flex-1 space-y-4">
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Check-in</p>
+                                    <p class="font-bold text-slate-900">{{ \Carbon\Carbon::parse($rental->start_date)->format('d M Y') }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Check-out</p>
+                                    <p class="font-bold text-slate-900">{{ \Carbon\Carbon::parse($rental->end_date)->format('d M Y') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 </x-app-layout>
+

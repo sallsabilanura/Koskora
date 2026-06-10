@@ -10,9 +10,37 @@ class RentalController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $rentals = Rental::with(['tenant', 'room'])->latest()->get();
+        $user = auth()->user();
+        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+
+        $query = Rental::with(['tenant.user', 'room'])->latest();
+
+        // Scope to admin's district via room
+        if ($adminDistrict) {
+            $query->whereHas('room', function ($q) use ($adminDistrict) {
+                $q->where('district', $adminDistrict);
+            });
+        }
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->whereHas('tenant.user', function($uq) use ($search) {
+                    $uq->where('name', 'like', "%{$search}%");
+                })
+                ->orWhereHas('room', function($rq) use ($search) {
+                    $rq->where('room_number', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        if ($request->has('status') && $request->status !== '') {
+            $query->where('status', $request->status);
+        }
+
+        $rentals = $query->paginate(15);
         return view('rentals.index', compact('rentals'));
     }
 
@@ -21,8 +49,15 @@ class RentalController extends Controller
      */
     public function create()
     {
+        $user = auth()->user();
+        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+
         $tenants = \App\Models\Tenants::all();
-        $rooms = \App\Models\Room::where('status', 'available')->get();
+        $roomQuery = \App\Models\Room::where('status', 'available');
+        if ($adminDistrict) {
+            $roomQuery->where('district', $adminDistrict);
+        }
+        $rooms = $roomQuery->get();
         return view('rentals.create', compact('tenants', 'rooms'));
     }
 
@@ -75,8 +110,15 @@ class RentalController extends Controller
      */
     public function edit(Rental $rental)
     {
+        $user = auth()->user();
+        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+
         $tenants = \App\Models\Tenants::all();
-        $rooms = \App\Models\Room::all();
+        $roomQuery = \App\Models\Room::query();
+        if ($adminDistrict) {
+            $roomQuery->where('district', $adminDistrict);
+        }
+        $rooms = $roomQuery->get();
         return view('rentals.edit', compact('rental', 'tenants', 'rooms'));
     }
 

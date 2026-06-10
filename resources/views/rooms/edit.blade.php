@@ -1,11 +1,14 @@
 <x-app-layout>
     @section('header_title', 'Edit Room')
 
-    <div class="max-w-4xl mx-auto space-y-6">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-slate-800">Edit Kamar: {{ $room->room_number }}</h2>
-            <a href="{{ route('rooms.index') }}" class="inline-flex items-center px-4 py-2 bg-slate-100 border border-transparent rounded-xl font-semibold text-xs text-slate-600 uppercase tracking-widest hover:bg-slate-200 transition ease-in-out duration-150">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+    <div class="max-w-4xl mx-auto space-y-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Edit Kamar</h2>
+                <p class="text-slate-500 text-sm mt-1 font-medium">Ubah detail unit #{{ $room->room_number }} untuk menyesuaikan informasi terbaru.</p>
+            </div>
+            <a href="{{ route('rooms.index') }}" class="inline-flex items-center justify-center px-6 py-3 bg-white border border-slate-200 rounded-2xl font-bold text-xs text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm active:scale-95">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Kembali
             </a>
         </div>
@@ -55,6 +58,26 @@
                         <div class="relative">
                             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">Rp</span>
                             <input type="number" name="price" class="w-full pl-12 rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-black text-slate-700" value="{{ old('price', $room->price) }}">
+                        </div>
+                    </div>
+
+                    <!-- Discount Group -->
+                    <div class="md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-slate-50/50 rounded-3xl border border-slate-100">
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Diskon (%)</label>
+                            <input type="number" name="discount_percentage" class="w-full rounded-2xl border-slate-200" value="{{ old('discount_percentage', $room->discount_percentage) }}">
+                        </div>
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Label Diskon</label>
+                            <input type="text" name="discount_label" class="w-full rounded-2xl border-slate-200" value="{{ old('discount_label', $room->discount_label) }}">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Tgl Mulai</label>
+                            <input type="date" name="discount_start" class="w-full rounded-2xl border-slate-200" value="{{ old('discount_start', $room->discount_start ? $room->discount_start->format('Y-m-d') : '') }}">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Tgl Selesai</label>
+                            <input type="date" name="discount_end" class="w-full rounded-2xl border-slate-200" value="{{ old('discount_end', $room->discount_end ? $room->discount_end->format('Y-m-d') : '') }}">
                         </div>
                     </div>
 
@@ -184,9 +207,9 @@
                 </div>
 
                 <div class="pt-8 border-t border-slate-50 flex items-center justify-between gap-4">
-                    <button type="submit" class="flex-1 py-5 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 shadow-2xl shadow-blue-100 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center space-x-3">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        <span>UPDATE DATA KAMAR</span>
+                    <button type="submit" class="flex-1 py-5 bg-brand-blue text-white rounded-3xl font-black text-lg hover:bg-brand-red shadow-xl shadow-brand-blue/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center space-x-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span>SIMPAN PERUBAHAN</span>
                     </button>
                 </div>
             </form>

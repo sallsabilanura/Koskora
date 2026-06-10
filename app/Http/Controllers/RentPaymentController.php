@@ -16,10 +16,54 @@ class RentPaymentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $payments = RentPayment::with(['rental', 'room', 'tenants'])->latest()->paginate(10);
-        return view('rent_payments.index', compact('payments'));
+        $user = auth()->user();
+        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+
+        $query = RentPayment::with(['rental', 'room', 'tenants.user'])->latest();
+
+        // Scope to admin's district via room
+        if ($adminDistrict) {
+            $query->whereHas('room', function ($q) use ($adminDistrict) {
+                $q->where('district', $adminDistrict);
+            });
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('month', 'like', "%{$search}%")
+                  ->orWhere('method', 'like', "%{$search}%")
+                  ->orWhereHas('tenants.user', function($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('room', function($rq) use ($search) {
+                      $rq->where('room_number', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('tenant_id')) {
+            $query->where('tenants_id', $request->tenant_id);
+        }
+
+        $payments = $query->paginate(10);
+
+        // Get tenants for filter dropdown, scoped to admin's district
+        $tenantQuery = Tenants::with('user')->whereHas('rentPayments');
+        if ($adminDistrict) {
+            $tenantQuery->whereHas('rentals.room', function ($q) use ($adminDistrict) {
+                $q->where('district', $adminDistrict);
+            });
+        }
+        $tenants = $tenantQuery->get()->sortBy('user.name');
+
+        return view('rent_payments.index', compact('payments', 'tenants'));
     }
 
     /**
@@ -256,22 +300,6 @@ class RentPaymentController extends Controller
         ))->with('midtransClientKey', config('services.midtrans.client_key'));
     }
 
-    /**
-     * Show the ticket for a verified payment.
-     */
-    public function showTicket(RentPayment $rentPayment)
-    {
-        // Security check
-        if ($rentPayment->tenants_id !== auth()->user()->tenant->id && !auth()->user()->isAdmin()) {
-            abort(403);
-        }
-
-        if ($rentPayment->status !== 'paid') {
-            return redirect()->back()->with('error', 'Tiket belum tersedia karena pembayaran belum diverifikasi.');
-        }
-
-        return view('rent_payments.ticket', compact('rentPayment'));
-    }
 
     /**
      * Get or Generate Midtrans Snap Token
@@ -372,5 +400,22 @@ class RentPaymentController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Gagal mengecek status: ' . $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Force update payment status (for dummy/demo purposes)
+     */
+    public function forceUpdateStatus(Request $request, RentPayment $rentPayment)
+    {
+        $request->validate([
+            'status' => 'required|in:paid,pending,unpaid',
+        ]);
+
+        $rentPayment->update([
+            'status' => $request->status,
+            'rejection_reason' => $request->status === 'unpaid' ? ($request->rejection_reason ?? 'Manual status update') : null
+        ]);
+
+        return redirect()->back()->with('success', 'Status pembayaran berhasil diperbarui secara manual.');
     }
 }

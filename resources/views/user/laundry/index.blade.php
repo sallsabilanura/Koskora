@@ -124,60 +124,7 @@
         </div>
     </div>
 
-    <!-- Payment Modal -->
-    <!-- Payment Modal -->
-    <div id="paymentModal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
-            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closePaymentModal()"></div>
-            <div class="inline-block align-middle bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-200">
-                <form id="paymentForm" action="" method="POST" enctype="multipart/form-data" class="p-6 md:p-10 space-y-8">
-                    @csrf
-                    <div class="text-center space-y-2">
-                        <h3 class="text-2xl font-extrabold text-slate-800 tracking-tight leading-none">Konfirmasi Pembayaran</h3>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Silakan transfer ke rekening berikut</p>
-                    </div>
 
-                    <div class="bg-slate-50 rounded-2xl p-6 md:p-8 space-y-4 border border-slate-100">
-                        <div class="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            <span>Partner Bank</span>
-                            <span id="bankNameDisplay" class="text-brand-blue"></span>
-                        </div>
-                        <div class="flex justify-between items-center py-2">
-                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">No. Rekening</span>
-                            <span id="bankAccountDisplay" class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight"></span>
-                        </div>
-                        <div class="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            <span>Atas Nama</span>
-                            <span id="bankUserDisplay" class="text-slate-800"></span>
-                        </div>
-                        <div class="pt-6 border-t border-slate-200 flex justify-between items-center">
-                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nominal Transfer</span>
-                            <span id="totalPriceDisplay" class="text-2xl font-extrabold text-brand-red tracking-tighter"></span>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-1 h-3 bg-brand-blue rounded-full"></div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Upload Bukti Transfer</label>
-                        </div>
-                        <input type="file" name="payment_proof" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-slate-100 file:text-slate-600 hover:file:bg-slate-200 transition-all cursor-pointer" required>
-                    </div>
-
-                    <div class="flex gap-4 pt-2">
-                        <button type="button" onclick="closePaymentModal()" class="flex-1 py-3.5 bg-slate-50 text-slate-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 transition-all">
-                            Kembali
-                        </button>
-                        <button type="submit" class="flex-1 py-3.5 bg-brand-blue text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all hover:-translate-y-1 active:scale-95">
-                            Konfirmasi Bukti
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Review Modal -->
     <!-- Review Modal -->
     <div id="reviewModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
@@ -224,8 +171,73 @@
         </div>
     </div>
 
-
+    <!-- Payment Status Polling Script -->
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
     <script>
+        function openPaymentModal(order, laundry) {
+            // Check if snap token already exists
+            if (order.snap_token) {
+                payWithSnap(order.snap_token, order.id);
+            } else {
+                // Fetch new token
+                fetch('{{ route("user.laundry.midtrans-token") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ order_id: order.id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.snap_token) {
+                        payWithSnap(data.snap_token, order.id);
+                    } else {
+                        alert('Gagal mendapatkan token pembayaran: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat memproses pembayaran.');
+                });
+            }
+        }
+
+        function payWithSnap(snapToken, orderId) {
+            window.snap.pay(snapToken, {
+                onSuccess: function(result) {
+                    checkStatus(orderId);
+                },
+                onPending: function(result) {
+                    checkStatus(orderId);
+                },
+                onError: function(result) {
+                    checkStatus(orderId);
+                },
+                onClose: function() {
+                    console.log('customer closed the popup without finishing the payment');
+                }
+            });
+        }
+
+        function checkStatus(orderId) {
+            fetch(`/laundry/order/${orderId}/check-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                window.location.reload();
+            });
+        }
+
         function openReviewModal(orderId, laundryName) {
             document.getElementById('modalOrderId').value = orderId;
             document.getElementById('modalLaundryName').innerText = 'Rating ' + laundryName;
@@ -249,22 +261,6 @@
                     star.classList.add('text-slate-200');
                 }
             });
-        }
-
-        function openPaymentModal(order, laundry) {
-            const form = document.getElementById('paymentForm');
-            form.action = `/laundry/order/${order.id}/payment`;
-            
-            document.getElementById('bankNameDisplay').innerText = (laundry.bank_name || 'Alun-alun Laundry').toUpperCase();
-            document.getElementById('bankAccountDisplay').innerText = laundry.account_number || '000-000-000';
-            document.getElementById('bankUserDisplay').innerText = (laundry.account_name || laundry.name).toUpperCase();
-            document.getElementById('totalPriceDisplay').innerText = 'Rp ' + new Intl.NumberFormat('id-ID').format(order.total_price);
-            
-            document.getElementById('paymentModal').classList.remove('hidden');
-        }
-
-        function closePaymentModal() {
-            document.getElementById('paymentModal').classList.add('hidden');
         }
     </script>
 </x-app-layout>

@@ -24,34 +24,52 @@ class MidtransController extends Controller
             $order_id = $notification->order_id;
             $fraud = $notification->fraud_status;
 
-            // Order ID format: RENT-{payment_id}-{timestamp}
+            // Order ID format: {PREFIX}-{id}-{timestamp}
             $parts = explode('-', $order_id);
-            $payment_id = $parts[1] ?? null;
+            $prefix = $parts[0] ?? null;
+            $id = $parts[1] ?? null;
 
-            if (!$payment_id) {
-                return response()->json(['message' => 'Invalid Order ID'], 400);
+            if (!$prefix || !$id) {
+                return response()->json(['message' => 'Invalid Order ID format'], 400);
             }
 
-            $payment = RentPayment::findOrFail($payment_id);
+            $model = null;
+            $statusField = 'status';
+
+            switch ($prefix) {
+                case 'RENT':
+                    $model = \App\Models\RentPayment::find($id);
+                    break;
+                case 'LAUNDRY':
+                    $model = \App\Models\LaundryOrder::find($id);
+                    $statusField = 'payment_status';
+                    break;
+                case 'CLEANING':
+                    $model = \App\Models\CleaningOrder::find($id);
+                    $statusField = 'payment_status';
+                    break;
+                default:
+                    return response()->json(['message' => 'Unknown prefix'], 400);
+            }
+
+            if (!$model) {
+                return response()->json(['message' => 'Record not found'], 404);
+            }
 
             if ($transaction == 'capture') {
                 if ($type == 'credit_card') {
                     if ($fraud == 'challenge') {
-                        $payment->update(['status' => 'pending']);
+                        $model->update([$statusField => 'pending']);
                     } else {
-                        $payment->update(['status' => 'paid']);
+                        $model->update([$statusField => 'paid']);
                     }
                 }
             } else if ($transaction == 'settlement') {
-                $payment->update(['status' => 'paid']);
+                $model->update([$statusField => 'paid']);
             } else if ($transaction == 'pending') {
-                $payment->update(['status' => 'pending']);
-            } else if ($transaction == 'deny') {
-                $payment->update(['status' => 'unpaid']);
-            } else if ($transaction == 'expire') {
-                $payment->update(['status' => 'unpaid']);
-            } else if ($transaction == 'cancel') {
-                $payment->update(['status' => 'unpaid']);
+                $model->update([$statusField => 'pending']);
+            } else if ($transaction == 'deny' || $transaction == 'expire' || $transaction == 'cancel') {
+                $model->update([$statusField => 'unpaid']);
             }
 
             return response()->json(['message' => 'Success']);

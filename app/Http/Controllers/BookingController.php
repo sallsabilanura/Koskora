@@ -39,24 +39,44 @@ class BookingController extends Controller
     public function storeProfile(Request $request)
     {
         $request->validate([
-            'nik' => 'required|string|max:20|unique:tenants,nik',
+            'nama_lengkap' => 'required|string|max:255',
+            'nama_panggilan' => 'required|string|max:100',
+            'nik' => 'required|string|size:16|unique:tenants,nik',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'tempat_lahir' => 'required|string|max:100',
+            'tanggal_lahir' => 'required|date',
+            'nomor_whatsapp' => 'required|string|max:20',
+            'alamat_ktp' => 'required|string',
+            'address' => 'required|string',
+            'rt' => 'required|string|max:5',
+            'rw' => 'required|string|max:5',
+            'province' => 'required|string|max:100',
+            'city' => 'required|string|max:100',
+            'district' => 'required|string|max:100',
+            'village' => 'required|string|max:100',
             'occupation' => 'required|string|max:100',
             'emergency_contact' => 'required|string|max:20',
-            'address' => 'required|string',
+            'foto_ktp' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'foto_diri' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'room_id' => 'required|exists:rooms,id',
         ]);
 
         $user = Auth::user();
 
+        $data = $request->except(['foto_ktp', 'foto_diri', 'room_id']);
+        $data['user_id'] = $user->id;
+        $data['status'] = 'active';
+
+        if ($request->hasFile('foto_ktp')) {
+            $data['foto_ktp'] = $request->file('foto_ktp')->store('tenants/ktp', 'public');
+        }
+
+        if ($request->hasFile('foto_diri')) {
+            $data['foto_diri'] = $request->file('foto_diri')->store('tenants/self', 'public');
+        }
+
         // Create Tenant record
-        Tenants::create([
-            'user_id' => $user->id,
-            'nik' => $request->nik,
-            'occupation' => $request->occupation,
-            'emergency_contact' => $request->emergency_contact,
-            'address' => $request->address,
-            'status' => 'active',
-        ]);
+        Tenants::create($data);
 
         return redirect()->route('bookings.confirm', ['room' => $request->room_id]);
     }

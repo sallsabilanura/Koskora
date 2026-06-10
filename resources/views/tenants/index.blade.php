@@ -1,103 +1,115 @@
 <x-app-layout>
     @section('header_title', 'Tenants Management')
 
-    <div class="space-y-4 md:space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h2 class="text-xl md:text-2xl font-bold text-slate-800">Daftar Penyewa</h2>
-            <a href="{{ route('tenants.create') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 border border-transparent rounded-xl font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 transition btn-touch">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+    <div class="space-y-8 animate-fade-in">
+        {{-- ===== PAGE HEADER ===== --}}
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Manajemen Penyewa</h2>
+                <p class="text-slate-500 font-medium text-sm">Kelola data penghuni, informasi kontak, dan status hunian.</p>
+            </div>
+            <a href="{{ route('tenants.create') }}" class="btn btn-primary">
+                <i class="fas fa-user-plus text-sm"></i>
                 Tambah Penyewa
             </a>
         </div>
 
-        @if ($message = Session::get('success'))
-            <div class="p-3 md:p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl flex items-center shadow-sm text-sm">
-                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                {{ $message }}
-            </div>
-        @endif
+        <div class="filter-bar">
+            <form action="{{ route('tenants.index') }}" method="GET">
+                <div style="display:flex; gap:0.625rem; align-items:center; flex-wrap:wrap;">
+                    <div style="position:relative; flex:1; min-width:180px;">
+                        <i class="fas fa-search" style="position:absolute; left:0.875rem; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:0.8rem; pointer-events:none;"></i>
+                        <input type="text" name="search" value="{{ request('search') }}"
+                               placeholder="Cari nama, email, NIK, atau pekerjaan..."
+                               style="padding-left:2.5rem; width:100%; margin:0;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="flex-shrink:0; white-space:nowrap;">
+                        <i class="fas fa-search" style="font-size:0.75rem;"></i> Cari Data
+                    </button>
+                    @if(request('search'))
+                        <a href="{{ route('tenants.index') }}" class="btn btn-ghost" style="flex-shrink:0;" title="Reset">
+                            <i class="fas fa-undo-alt" style="font-size:0.75rem;"></i>
+                        </a>
+                    @endif
+                </div>
+            </form>
+        </div>
 
-        <!-- Desktop Table -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm desktop-table">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50/50 border-b border-slate-200">
-                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">No</th>
-                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Penyewa</th>
-                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">NIK</th>
-                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Pekerjaan</th>
-                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Status</th>
-                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        @foreach ($tenants as $tenant)
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 text-slate-600 font-medium">{{ $loop->iteration }}</td>
-                            <td class="px-6 py-4">
-                                <div class="font-bold text-slate-800 text-lg">{{ $tenant->user->name ?? 'Unknown Tenant' }}</div>
-                                <div class="text-xs text-slate-500">{{ Str::limit($tenant->address, 40) }}</div>
+        {{-- ===== TABLE SECTION ===== --}}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="w-16 text-center">#</th>
+                        <th>Identitas Penyewa</th>
+                        <th>Kontak & Alamat</th>
+                        <th>Pekerjaan</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($tenants as $tenant)
+                        <tr class="group">
+                            <td class="text-center text-slate-400 font-bold text-xs" data-label="#">{{ $loop->iteration + ($tenants->currentPage() - 1) * $tenants->perPage() }}</td>
+                            <td data-label="Penyewa">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center font-black text-sm shadow-sm">
+                                        {{ strtoupper(substr($tenant->user->name ?? 'U', 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <div class="font-extrabold text-slate-900 text-sm">{{ $tenant->user->name ?? 'Unknown' }}</div>
+                                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">NIK: {{ $tenant->nik }}</div>
+                                    </div>
+                                </div>
                             </td>
-                            <td class="px-6 py-4 text-slate-600 font-mono">{{ $tenant->nik }}</td>
-                            <td class="px-6 py-4 text-slate-600">{{ $tenant->occupation }}</td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="px-3 py-1 text-xs font-bold rounded-full {{ $tenant->status == 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
-                                    {{ ucfirst($tenant->status) }}
+                            <td data-label="Kontak">
+                                <div class="text-sm font-bold text-slate-700">{{ $tenant->user->email ?? '-' }}</div>
+                                <div class="text-[11px] font-medium text-slate-400 truncate max-w-[200px] mt-0.5">{{ $tenant->address }}</div>
+                            </td>
+                            <td data-label="Pekerjaan">
+                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wide">{{ $tenant->occupation }}</span>
+                            </td>
+                            <td class="text-center" data-label="Status">
+                                <span class="badge {{ $tenant->status == 'active' ? 'badge-green' : 'badge-red' }}">
+                                    {{ strtoupper($tenant->status) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex items-center justify-end space-x-2">
-                                    <a href="{{ route('tenants.show', $tenant->id) }}" class="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="View Details">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            <td class="text-right" data-label="Aksi">
+                                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                    <a href="{{ route('tenants.show', $tenant->id) }}" class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-brand hover:border-brand transition-all" title="Detail">
+                                        <i class="fas fa-eye text-xs"></i>
                                     </a>
-                                    <a href="{{ route('tenants.edit', $tenant->id) }}" class="p-2 text-slate-400 hover:text-amber-600 transition-colors" title="Edit">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    <a href="{{ route('tenants.edit', $tenant->id) }}" class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-brand hover:border-brand transition-all" title="Edit">
+                                        <i class="fas fa-edit text-xs"></i>
                                     </a>
-                                    <form action="{{ route('tenants.destroy', $tenant->id) }}" method="POST" class="inline-block">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="p-2 text-slate-400 hover:text-rose-600 transition-colors" onclick="return confirm('Yakin hapus data ini?')" title="Delete">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    <form action="{{ route('tenants.destroy', $tenant->id) }}" method="POST" class="inline">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" onclick="return confirm('Hapus data penyewa ini?')" 
+                                                class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-500 transition-all">
+                                            <i class="fas fa-trash-alt text-xs"></i>
                                         </button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                    @empty
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="fas fa-user-slash"></i>
+                                    <p class="text-sm font-black text-slate-400 uppercase tracking-widest mt-2">Data penyewa belum tersedia</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
-        <!-- Mobile Cards -->
-        <div class="mobile-cards space-y-3">
-            @foreach ($tenants as $tenant)
-                <div class="mobile-card">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-black text-sm flex-shrink-0">
-                                {{ strtoupper(substr($tenant->user->name ?? 'U', 0, 1)) }}
-                            </div>
-                            <div class="min-w-0">
-                                <div class="font-bold text-slate-800 truncate">{{ $tenant->user->name ?? 'Unknown' }}</div>
-                                <div class="text-[10px] text-slate-400">{{ $tenant->occupation }}</div>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full {{ $tenant->status == 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
-                            {{ ucfirst($tenant->status) }}
-                        </span>
-                    </div>
-                    <div class="text-[11px] text-slate-500 mb-3 truncate">{{ $tenant->address }}</div>
-                    <div class="flex items-center justify-between pt-3 border-t border-slate-100">
-                        <span class="text-[10px] font-mono text-slate-400">NIK: {{ $tenant->nik }}</span>
-                        <div class="flex gap-1">
-                            <a href="{{ route('tenants.show', $tenant->id) }}" class="px-3 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-lg btn-touch">Detail</a>
-                            <a href="{{ route('tenants.edit', $tenant->id) }}" class="px-3 py-2 text-xs font-bold text-amber-600 bg-amber-50 rounded-lg btn-touch">Edit</a>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
+        {{-- ===== PAGINATION ===== --}}
+        <div class="flex justify-center pt-4">
+            {{ $tenants->appends(request()->query())->links() }}
         </div>
     </div>
 </x-app-layout>

@@ -11,9 +11,33 @@ class TenantsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tenants = Tenants::latest()->get();
+        $user = auth()->user();
+        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+
+        $query = Tenants::with('user')->latest();
+
+        // Scope to admin's district via tenant's room rental
+        if ($adminDistrict) {
+            $query->whereHas('rentals.room', function ($q) use ($adminDistrict) {
+                $q->where('district', $adminDistrict);
+            });
+        }
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('nik', 'like', "%{$search}%")
+                  ->orWhere('occupation', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $tenants = $query->paginate(15);
         return view('tenants.index', compact('tenants'));
     }
 

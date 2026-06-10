@@ -44,20 +44,52 @@
                 </div>
 
                 <!-- Profile Review -->
-                <div class="px-8 py-6 rounded-2xl bg-slate-50/50 border border-slate-100 space-y-4">
-                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Profil Penyewa</div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div>
-                            <div class="text-xs text-slate-400 mb-1">Nama Lengkap</div>
-                            <div class="text-sm font-bold text-slate-700">{{ $user->name }}</div>
+                <div class="px-8 py-6 rounded-2xl bg-slate-50/50 border border-slate-100 space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Profil Penyewa</div>
+                        <a href="{{ route('bookings.complete-profile', ['room_id' => $room->id]) }}" class="text-[10px] font-black text-blue-600 uppercase hover:underline">Ubah Data</a>
+                    </div>
+                    
+                    <div class="flex items-start gap-8 flex-wrap">
+                        <!-- Photo Thumbnails -->
+                        <div class="flex gap-3">
+                            @if($user->tenant->foto_diri)
+                                <div class="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-sm">
+                                    <img src="{{ asset('storage/' . $user->tenant->foto_diri) }}" class="w-full h-full object-cover">
+                                </div>
+                            @endif
+                            @if($user->tenant->foto_ktp)
+                                <div class="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-sm">
+                                    <img src="{{ asset('storage/' . $user->tenant->foto_ktp) }}" class="w-full h-full object-cover">
+                                </div>
+                            @endif
                         </div>
-                        <div>
-                            <div class="text-xs text-slate-400 mb-1">NIK</div>
-                            <div class="text-sm font-bold text-slate-800 font-mono italic">{{ $user->tenant->nik }}</div>
-                        </div>
-                        <div class="md:col-span-2">
-                            <div class="text-xs text-slate-400 mb-1">Pekerjaan</div>
-                            <div class="text-sm font-bold text-slate-700">{{ $user->tenant->occupation }}</div>
+
+                        <div class="flex-1 grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-8">
+                            <div>
+                                <div class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Nama Lengkap</div>
+                                <div class="text-sm font-black text-slate-800">{{ $user->tenant->nama_lengkap }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">NIK (KTP)</div>
+                                <div class="text-sm font-black text-slate-800 font-mono tracking-tighter">{{ $user->tenant->nik }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">WhatsApp</div>
+                                <div class="text-sm font-black text-slate-800">{{ $user->tenant->nomor_whatsapp }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Jenis Kelamin</div>
+                                <div class="text-sm font-black text-slate-800">{{ $user->tenant->jenis_kelamin }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Pekerjaan</div>
+                                <div class="text-sm font-black text-slate-800">{{ $user->tenant->occupation }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-400 font-bold uppercase mb-0.5">TTL</div>
+                                <div class="text-sm font-black text-slate-800">{{ $user->tenant->tempat_lahir }}, {{ \Carbon\Carbon::parse($user->tenant->tanggal_lahir)->format('d/m/Y') }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>

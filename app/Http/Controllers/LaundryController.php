@@ -10,14 +10,36 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Midtrans\Config;
+use Midtrans\Snap;
+use Midtrans\Transaction;
 
 class LaundryController extends Controller
 {
     // --- Admin Actions ---
     public function adminIndex()
     {
-        $laundries = Laundry::with('user')->get();
-        return view('admin.laundries.index', compact('laundries'));
+        $user = auth()->user();
+        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+
+        $laundriesQuery = Laundry::with('user');
+        $ordersQuery    = LaundryOrder::with(['user.tenant.rentals.room', 'laundry']);
+        $servicesQuery  = LaundryService::with('laundry');
+
+        if ($adminDistrict) {
+            $laundriesQuery->whereHas('user', function ($q) use ($adminDistrict) {
+                $q->where('district', $adminDistrict);
+            });
+            $laundriesIds = (clone $laundriesQuery)->pluck('id');
+            $ordersQuery->whereIn('laundry_id', $laundriesIds);
+            $servicesQuery->whereIn('laundry_id', $laundriesIds);
+        }
+
+        $laundries = $laundriesQuery->get();
+        $orders    = $ordersQuery->latest()->get();
+        $services  = $servicesQuery->get();
+
+        return view('admin.laundries.index', compact('laundries', 'orders', 'services'));
     }
 
     public function adminStore(Request $request)
@@ -33,11 +55,14 @@ class LaundryController extends Controller
         ]);
 
         DB::transaction(function () use ($request) {
+            $admin = auth()->user();
             $user = User::create([
-                'name' => $request->partner_name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role' => 'laundry',
+                'name'              => $request->partner_name,
+                'email'             => $request->email,
+                'password'          => Hash::make($request->password),
+                'role'              => 'laundry',
+                'district'          => $admin->district, // Inherit district from registering admin
+                'email_verified_at' => now(),
             ]);
 
             $imagePath = null;
@@ -47,10 +72,10 @@ class LaundryController extends Controller
 
             Laundry::create([
                 'user_id' => $user->id,
-                'name' => $request->laundry_name,
+                'name'    => $request->laundry_name,
                 'address' => $request->address,
-                'phone' => $request->phone,
-                'image' => $imagePath,
+                'phone'   => $request->phone,
+                'image'   => $imagePath,
             ]);
         });
 
@@ -156,12 +181,24 @@ class LaundryController extends Controller
 
     public function partnerOrders()
     {
-        $laundry = auth()->user()->laundry;
+        $user = auth()->user();
+        $laundry = $user->laundry;
         $orders = LaundryOrder::where('laundry_id', $laundry->id)
             ->with('user.tenant.rentals.room')
             ->latest()
             ->get();
-        return view('laundry.orders', compact('orders'));
+            
+        $totalEarned = LaundryOrder::where('laundry_id', $laundry->id)
+            ->where('payment_status', 'paid')
+            ->sum('partner_amount');
+            
+        $totalWithdrawn = \App\Models\Withdrawal::where('user_id', $user->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->sum('amount');
+            
+        $balance = $totalEarned - $totalWithdrawn;
+            
+        return view('laundry.orders', compact('orders', 'balance'));
     }
 
     public function partnerUpdateStatus(Request $request, LaundryOrder $order)
@@ -189,8 +226,26 @@ class LaundryController extends Controller
     // --- User/Tenant Actions ---
     public function userIndex()
     {
-        $laundries = Laundry::withCount('reviews')->get();
-        
+        $user = auth()->user();
+        $tenant = $user->tenant;
+
+        // Filter laundries by the tenant's room district
+        $laundriesQuery = Laundry::withCount('reviews');
+        if ($tenant) {
+            $activeRental = \App\Models\Rental::where('tenant_id', $tenant->id)
+                ->whereIn('status', ['active'])
+                ->with('room')
+                ->first();
+            if ($activeRental && $activeRental->room && $activeRental->room->district) {
+                $tenantDistrict = $activeRental->room->district;
+                $laundriesQuery->whereHas('user', function ($q) use ($tenantDistrict) {
+                    $q->where('district', $tenantDistrict);
+                });
+            }
+        }
+
+        $laundries = $laundriesQuery->get();
+
         // Transform laundries to include average rating
         $laundries->map(function ($laundry) {
             $laundry->avg_rating = $laundry->averageRating();
@@ -201,8 +256,9 @@ class LaundryController extends Controller
             ->with(['laundry', 'review'])
             ->latest()
             ->get();
-            
-        return view('user.laundry.index', compact('laundries', 'myOrders'));
+
+        return view('user.laundry.index', compact('laundries', 'myOrders'))
+            ->with('midtransClientKey', config('services.midtrans.client_key'));
     }
 
     public function userOrder(Laundry $laundry)
@@ -236,11 +292,16 @@ class LaundryController extends Controller
             }
         }
 
+        $commissionAmount = $totalPrice * 0.1;
+        $partnerAmount = $totalPrice - $commissionAmount;
+
         LaundryOrder::create([
             'user_id' => auth()->id(),
             'laundry_id' => $laundry->id,
             'items' => $finalItems,
             'total_price' => $totalPrice,
+            'commission_amount' => $commissionAmount,
+            'partner_amount' => $partnerAmount,
             'status' => 'pending',
             'notes' => $request->notes
         ]);
@@ -297,5 +358,77 @@ class LaundryController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi partner.');
+    }
+
+    public function getSnapToken(Request $request)
+    {
+        $order = LaundryOrder::findOrFail($request->order_id);
+        $user = auth()->user();
+
+        // Midtrans Configuration
+        Config::$serverKey = trim(config('services.midtrans.server_key'));
+        Config::$isProduction = (bool)config('services.midtrans.is_production');
+        Config::$isSanitized = (bool)config('services.midtrans.is_sanitized');
+        Config::$is3ds = (bool)config('services.midtrans.is_3ds');
+
+        $params = [
+            'transaction_details' => [
+                'order_id' => 'LAUNDRY-' . $order->id . '-' . time(),
+                'gross_amount' => (int)$order->total_price,
+            ],
+            'customer_details' => [
+                'first_name' => $user->name,
+                'email' => $user->email,
+            ],
+            'item_details' => array_map(function($item) {
+                return [
+                    'id' => 'LND-' . str_replace(' ', '_', $item['item']),
+                    'price' => (int)$item['price'],
+                    'quantity' => (int)$item['qty'],
+                    'name' => $item['item'],
+                ];
+            }, $order->items),
+        ];
+
+        try {
+            $snapToken = Snap::getSnapToken($params);
+            $order->update([
+                'snap_token' => $snapToken,
+                'transaction_id' => $params['transaction_details']['order_id']
+            ]);
+
+            return response()->json(['snap_token' => $snapToken]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function checkPaymentStatus(LaundryOrder $order)
+    {
+        if (!$order->transaction_id) {
+            return response()->json(['message' => 'Belum ada transaksi Midtrans untuk pesanan ini.'], 404);
+        }
+
+        Config::$serverKey = trim(config('services.midtrans.server_key'));
+        Config::$isProduction = (bool)config('services.midtrans.is_production');
+
+        try {
+            $status = Transaction::status($order->transaction_id);
+            $transactionStatus = $status->transaction_status;
+            
+            if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
+                $order->update(['payment_status' => 'paid']);
+                return response()->json(['status' => 'paid', 'message' => 'Pembayaran Berhasil!']);
+            } else if ($transactionStatus == 'pending') {
+                return response()->json(['status' => 'pending', 'message' => 'Pembayaran masih tertunda.']);
+            } else if ($transactionStatus == 'deny' || $transactionStatus == 'expire' || $transactionStatus == 'cancel') {
+                $order->update(['payment_status' => 'unpaid']);
+                return response()->json(['status' => 'unpaid', 'message' => 'Pembayaran gagal, kadaluarsa, atau dibatalkan.']);
+            }
+
+            return response()->json(['status' => $transactionStatus, 'message' => 'Status: ' . $transactionStatus]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal mengecek status: ' . $e->getMessage()], 500);
+        }
     }
 }

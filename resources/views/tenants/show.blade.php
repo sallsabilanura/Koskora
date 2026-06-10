@@ -22,35 +22,90 @@
                 <!-- Personal Information -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                        <h3 class="text-lg font-bold text-slate-800">Informasi Pribadi</h3>
+                        <h3 class="text-lg font-bold text-slate-800">Informasi Pribadi & Dokumen</h3>
                         <span class="px-4 py-1.5 text-sm font-bold rounded-full {{ $tenant->status == 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
                             {{ ucfirst($tenant->status) }}
                         </span>
                     </div>
-                    <div class="p-8 space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="p-8 space-y-8">
+                        <!-- Photos Section -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">NIK</div>
-                                <div class="text-lg font-mono font-semibold text-slate-800">{{ $tenant->nik }}</div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Foto KTP</div>
+                                @if($tenant->foto_ktp)
+                                    <div class="aspect-[3/2] rounded-2xl overflow-hidden border border-slate-200 shadow-sm group cursor-zoom-in">
+                                        <img src="{{ asset('storage/' . $tenant->foto_ktp) }}" class="w-full h-full object-cover transition-transform group-hover:scale-105">
+                                    </div>
+                                @else
+                                    <div class="aspect-[3/2] rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 text-xs font-bold">Tidak ada foto KTP</div>
+                                @endif
                             </div>
                             <div>
-                                <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Pekerjaan</div>
-                                <div class="text-lg font-semibold text-slate-800">{{ $tenant->occupation }}</div>
-                            </div>
-                            <div>
-                                <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Kontak Darurat</div>
-                                <div class="text-lg font-semibold text-slate-800">{{ $tenant->emergency_contact }}</div>
-                            </div>
-                             <div>
-                                <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Email (Akun)</div>
-                                <div class="text-lg font-semibold text-slate-800">{{ $tenant->user->email ?? 'N/A' }}</div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Foto Diri</div>
+                                @if($tenant->foto_diri)
+                                    <div class="aspect-square rounded-2xl overflow-hidden border border-slate-200 shadow-sm group cursor-zoom-in">
+                                        <img src="{{ asset('storage/' . $tenant->foto_diri) }}" class="w-full h-full object-cover transition-transform group-hover:scale-105">
+                                    </div>
+                                @else
+                                    <div class="aspect-square rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 text-xs font-bold">Tidak ada foto diri</div>
+                                @endif
                             </div>
                         </div>
 
-                        <div>
-                            <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Alamat Lengkap</div>
-                            <div class="bg-slate-50 rounded-xl p-4 text-slate-600 border border-slate-100 leading-relaxed">
-                                {{ $tenant->address ?: 'Tidak ada alamat tersedia.' }}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8 pt-6 border-t border-slate-100">
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nama Lengkap</div>
+                                <div class="text-sm font-bold text-slate-800">{{ $tenant->nama_lengkap }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nama Panggilan</div>
+                                <div class="text-sm font-bold text-slate-800">{{ $tenant->nama_panggilan }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">NIK (KTP)</div>
+                                <div class="text-sm font-mono font-bold text-slate-800 tracking-tighter">{{ $tenant->nik }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Jenis Kelamin</div>
+                                <div class="text-sm font-bold text-slate-800">{{ $tenant->jenis_kelamin }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tempat, Tanggal Lahir</div>
+                                <div class="text-sm font-bold text-slate-800">{{ $tenant->tempat_lahir }}, {{ \Carbon\Carbon::parse($tenant->tanggal_lahir)->format('d M Y') }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nomor WhatsApp</div>
+                                <div class="text-sm font-bold text-blue-600">{{ $tenant->nomor_whatsapp }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pekerjaan</div>
+                                <div class="text-sm font-bold text-slate-800">{{ $tenant->occupation }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Kontak Darurat</div>
+                                <div class="text-sm font-bold text-slate-800">{{ $tenant->emergency_contact }}</div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6 pt-6 border-t border-slate-100">
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Alamat KTP</div>
+                                <div class="bg-slate-50 rounded-xl p-4 text-sm text-slate-600 border border-slate-100 leading-relaxed font-medium">
+                                    {{ $tenant->alamat_ktp }}
+                                    <div class="mt-2 pt-2 border-t border-slate-200 text-[10px] font-bold text-slate-400 flex flex-wrap gap-x-4 gap-y-1">
+                                        <span>RT/RW: {{ $tenant->rt }}/{{ $tenant->rw }}</span>
+                                        <span>Desa: {{ $tenant->village }}</span>
+                                        <span>Kec: {{ $tenant->district }}</span>
+                                        <span>Kota: {{ $tenant->city }}</span>
+                                        <span>Prov: {{ $tenant->province }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Alamat Domisili</div>
+                                <div class="bg-slate-50 rounded-xl p-4 text-sm text-slate-600 border border-slate-100 leading-relaxed font-medium">
+                                    {{ $tenant->address ?: 'Sama dengan alamat KTP' }}
+                                </div>
                             </div>
                         </div>
                     </div>

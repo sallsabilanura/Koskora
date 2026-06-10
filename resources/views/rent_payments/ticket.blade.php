@@ -68,7 +68,7 @@
                 <!-- High Priority Info -->
                 <div class="flex flex-col items-center mb-8">
                     @php
-                        $qrData = route('rent-payments.ticket', $rentPayment->id);
+                        $qrData = route('security.scan', ['ticket_id' => str_pad($rentPayment->id, 10, '0', STR_PAD_LEFT)]);
                         $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($qrData);
                     @endphp
                     <div class="qr-container p-6 rounded-[2rem] shadow-inner mb-6 relative">

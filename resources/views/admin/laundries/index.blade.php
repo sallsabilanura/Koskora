@@ -1,71 +1,119 @@
 <x-app-layout>
-    @section('header_title', 'Partner Laundry')
+    @section('header_title', 'Laundry Hub')
 
-    <div class="space-y-4 md:space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h2 class="text-xl md:text-2xl font-bold text-slate-800">Partner Laundry</h2>
-            <button @click="$dispatch('open-modal', 'register-partner')" class="inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 border border-transparent rounded-xl font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 transition btn-touch">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Register Partner
+    <div class="space-y-6 animate-fade-in">
+        {{-- ===== TAB NAVIGATION ===== --}}
+        <div class="flex overflow-x-auto gap-2 pb-1 no-scrollbar">
+            <button onclick="switchTab('pesanan')" id="tab-btn-pesanan"
+                class="tab-btn flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all duration-200 bg-white border border-slate-100 text-slate-500 hover:text-brand shadow-sm">
+                <i class="fas fa-clipboard-check text-[10px]"></i>
+                Daftar Pesanan
+            </button>
+            <button onclick="switchTab('partner')" id="tab-btn-partner"
+                class="tab-btn flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all duration-200 bg-white border border-slate-100 text-slate-500 hover:text-brand shadow-sm">
+                <i class="fas fa-store text-[10px]"></i>
+                Daftar Partner
+            </button>
+            <button onclick="switchTab('layanan')" id="tab-btn-layanan"
+                class="tab-btn flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all duration-200 bg-white border border-slate-100 text-slate-500 hover:text-brand shadow-sm">
+                <i class="fas fa-tshirt text-[10px]"></i>
+                Daftar Layanan
             </button>
         </div>
 
         @if ($message = Session::get('success'))
-            <div class="p-3 md:p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl flex items-center shadow-sm text-sm">
-                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div class="badge badge-green w-full justify-start p-3 rounded-xl border border-emerald-100">
+                <i class="fas fa-check-circle mr-2"></i>
                 {{ $message }}
             </div>
         @endif
 
-        <!-- Desktop Table -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm desktop-table">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+        {{-- ===== TAB: PESANAN ===== --}}
+        <div id="tab-pesanan" class="tab-panel space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Komisi</p>
+                            <h3 class="text-2xl font-bold text-slate-800">Rp
+                                {{ number_format($orders->where('payment_status', 'paid')->sum('commission_amount'), 0, ',', '.') }}
+                            </h3>
+                        </div>
+                        <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pesanan Aktif</p>
+                            <h3 class="text-2xl font-bold text-slate-800">
+                                {{ $orders->whereNotIn('status', ['done', 'cancelled'])->count() }}</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-sync fa-spin"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <div class="p-4 border-b border-slate-50">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Arus Pesanan Laundry</h3>
+                </div>
+                <table class="data-table">
                     <thead>
-                        <tr class="bg-slate-50/50 border-b border-slate-200">
-                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Partner & Owner</th>
-                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Kontak</th>
-                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Lokasi</th>
-                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Aksi</th>
+                        <tr>
+                            <th>Penghuni & Unit</th>
+                            <th>Partner Laundry</th>
+                            <th>Total Bayar</th>
+                            <th>Jadwal / Waktu</th>
+                            <th class="text-center">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        @forelse($laundries as $laundry)
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center space-x-3">
-                                        @if($laundry->image)
-                                            <img src="{{ asset('storage/' . $laundry->image) }}" class="w-10 h-10 object-cover rounded-lg border border-slate-200">
-                                        @else
-                                            <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 border border-slate-200">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                            </div>
-                                        @endif
-                                        <div>
-                                            <div class="font-bold text-slate-800">{{ $laundry->name }}</div>
-                                            <div class="text-[10px] font-medium text-slate-500">{{ $laundry->user->name }}</div>
-                                        </div>
-                                    </div>
+                    <tbody>
+                        @forelse($orders as $order)
+                            <tr>
+                                <td data-label="Penghuni">
+                                    <div class="font-semibold text-slate-900">{{ $order->user->name }}</div>
+                                    @php $rental = $order->user->tenant ? $order->user->tenant->rentals->first() : null; @endphp
+                                    <div class="text-[10px] font-bold text-brand uppercase">Room
+                                        {{ $rental && $rental->room ? $rental->room->room_number : '?' }}</div>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-xs font-bold text-slate-700">{{ $laundry->user->email }}</div>
-                                    <div class="text-[10px] text-slate-400">{{ $laundry->phone }}</div>
+                                <td data-label="Partner">
+                                    <div class="text-[12px] font-bold text-slate-700">{{ $order->laundry->name }}</div>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-xs text-slate-500 line-clamp-1 max-w-xs">{{ $laundry->address }}</div>
+                                <td data-label="Total">
+                                    <div class="text-[12px] font-bold text-slate-900">Rp {{ number_format($order->total_price, 0, ',', '.') }}</div>
+                                    <div class="text-[10px] text-brand font-bold">Komisi: Rp {{ number_format($order->commission_amount, 0, ',', '.') }}</div>
                                 </td>
-                                <td class="px-6 py-4 text-right">
-                                    <div class="flex items-center justify-end space-x-2">
-                                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded-lg uppercase tracking-wider">Active</span>
-                                        <a href="{{ route('admin.laundries.edit', $laundry->id) }}" class="p-2 text-slate-400 hover:text-amber-600 transition-colors">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                        </a>
-                                    </div>
+                                <td data-label="Waktu">
+                                    <div class="text-[11px] font-bold text-slate-700">{{ $order->created_at->format('d M Y') }}</div>
+                                    <div class="text-[10px] text-slate-400 font-medium">{{ $order->created_at->format('H:i') }} WIB</div>
+                                </td>
+                                <td class="text-center" data-label="Status">
+                                    @php
+                                        $sBadge = [
+                                            'done' => 'badge-green',
+                                            'in_progress' => 'badge-purple',
+                                            'ready' => 'badge-blue',
+                                            'picked_up' => 'badge-amber',
+                                            'pending' => 'badge-gray',
+                                            'cancelled' => 'badge-red',
+                                        ][$order->status] ?? 'badge-gray';
+                                    @endphp
+                                    <span class="badge {{ $sBadge }}">{{ ucfirst(str_replace('_', ' ', $order->status)) }}</span>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-8 text-center text-slate-400 text-sm">Belum ada partner laundry.</td>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon"><i class="fas fa-receipt"></i></div>
+                                        <p>Belum ada transaksi laundry yang tercatat.</p>
+                                    </div>
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -73,112 +121,211 @@
             </div>
         </div>
 
-        <!-- Mobile Cards -->
-        <div class="mobile-cards space-y-3">
-            @foreach ($laundries as $laundry)
-                <div class="mobile-card">
-                    <div class="flex items-start gap-3 mb-3">
-                        @if($laundry->image)
-                            <img src="{{ asset('storage/' . $laundry->image) }}" class="w-14 h-14 object-cover rounded-xl border border-slate-200">
-                        @else
-                            <div class="w-14 h-14 bg-slate-100 rounded-xl flex items-center justify-center text-slate-300 border border-slate-200">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                            </div>
-                        @endif
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between mb-0.5">
-                                <div class="font-bold text-slate-800 text-base truncate">{{ $laundry->name }}</div>
-                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded-full uppercase">Active</span>
-                            </div>
-                            <div class="text-[10px] font-bold text-brand-blue mb-1">Owner: {{ $laundry->user->name }}</div>
-                            <div class="text-[11px] text-slate-500 line-clamp-1 truncate">{{ $laundry->address }}</div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 mb-3 bg-slate-50 rounded-lg p-2">
-                        <div>
-                            <div class="text-[9px] font-bold text-slate-400 uppercase">WhatsApp</div>
-                            <div class="text-[10px] font-bold text-slate-700">{{ $laundry->phone }}</div>
-                        </div>
-                        <div>
-                            <div class="text-[9px] font-bold text-slate-400 uppercase">Email</div>
-                            <div class="text-[10px] font-bold text-slate-700 truncate">{{ $laundry->user->email }}</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-end gap-1 pt-3 border-t border-slate-100">
-                        <a href="{{ route('admin.laundries.edit', $laundry->id) }}" class="px-3 py-2 text-xs font-bold text-amber-600 bg-amber-50 rounded-lg btn-touch">Edit Partner</a>
-                    </div>
-                </div>
-            @endforeach
+        {{-- ===== TAB: PARTNER ===== --}}
+        <div id="tab-partner" class="tab-panel hidden space-y-6">
+            <div class="flex justify-end">
+                <button @click="$dispatch('open-modal', 'register-partner')" class="btn btn-primary">
+                    <i class="fas fa-plus text-[10px]"></i>
+                    Daftarkan Partner
+                </button>
+            </div>
+
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Partner & Owner</th>
+                            <th>Kontak</th>
+                            <th>Alamat</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($laundries as $laundry)
+                            <tr>
+                                <td data-label="Partner">
+                                    <div class="flex items-center gap-3">
+                                        @if($laundry->image)
+                                            <img src="{{ asset('storage/' . $laundry->image) }}"
+                                                class="w-9 h-9 object-cover rounded-lg border border-slate-100">
+                                        @else
+                                            <div class="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 border border-slate-50">
+                                                <i class="fas fa-tshirt text-xs"></i>
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <div class="font-semibold text-slate-900">{{ $laundry->name }}</div>
+                                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ $laundry->user->name }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-label="Kontak">
+                                    <div class="text-[11px] font-semibold text-slate-700">{{ $laundry->user->email }}</div>
+                                    <div class="text-[10px] text-brand font-bold">{{ $laundry->phone }}</div>
+                                </td>
+                                <td data-label="Alamat">
+                                    <div class="text-[11px] text-slate-500 line-clamp-1 max-w-[200px]">{{ $laundry->address }}</div>
+                                </td>
+                                <td class="text-center" data-label="Status">
+                                    <span class="badge badge-green">Aktif</span>
+                                </td>
+                                <td class="text-right" data-label="Aksi">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <a href="{{ route('admin.laundries.edit', $laundry->id) }}" class="nav-icon-btn" title="Edit">
+                                            <i class="fas fa-edit text-[11px]"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon"><i class="fas fa-store-slash"></i></div>
+                                        <p>Belum ada partner laundry yang terdaftar.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <!-- Premium Registration Modal -->
-        <x-modal name="register-partner" focusable maxWidth="4xl">
-            <div class="relative">
-                <button type="button" @click="$dispatch('close')" class="absolute top-6 right-6 p-2 text-slate-400 hover:text-rose-600 transition-colors z-20">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+        {{-- ===== TAB: LAYANAN ===== --}}
+        <div id="tab-layanan" class="tab-panel hidden space-y-6">
+            <div class="table-wrap">
+                <div class="p-4 border-b border-slate-50">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Katalog Layanan Partner</h3>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Partner Laundry</th>
+                            <th>Nama Layanan/Item</th>
+                            <th class="text-right">Harga Layanan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($services as $service)
+                            <tr>
+                                <td data-label="Partner">
+                                    <div class="font-bold text-slate-800">{{ $service->laundry->name }}</div>
+                                </td>
+                                <td data-label="Layanan">
+                                    <div class="text-[12px] font-semibold text-slate-700">{{ $service->item_name }}</div>
+                                </td>
+                                <td class="text-right" data-label="Harga">
+                                    <div class="font-bold text-brand">Rp {{ number_format($service->price, 0, ',', '.') }}</div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon"><i class="fas fa-tshirt"></i></div>
+                                        <p>Belum ada layanan yang ditawarkan oleh partner.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-                <div class="p-8 md:p-10">
-                    <div class="mb-8">
-                        <h3 class="text-2xl font-bold text-slate-800">Daftar Partner Laundry Baru</h3>
-                        <p class="text-slate-500 text-sm">Lengkapi informasi untuk mendaftarkan partner laundry.</p>
+        {{-- ===== MODALS ===== --}}
+        <x-modal name="register-partner" focusable maxWidth="3xl">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 tracking-tight">Daftar Partner Baru</h3>
+                        <p class="text-slate-500 text-[13px] mt-0.5">Silakan lengkapi informasi partner laundry di bawah ini.</p>
+                    </div>
+                    <button @click="$dispatch('close')" class="nav-icon-btn">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+
+                <form action="{{ route('admin.laundries.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {{-- Owner Info --}}
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="w-1 h-3 bg-brand rounded-full"></span>
+                                <h4 class="text-[11px] font-bold text-slate-800 uppercase tracking-widest">Informasi Pemilik</h4>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Pemilik</label>
+                                <input type="text" name="partner_name" placeholder="Nama Lengkap" required>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Login</label>
+                                <input type="email" name="email" placeholder="email@contoh.com" required>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                                <input type="password" name="password" placeholder="••••••••" required>
+                            </div>
+                        </div>
+
+                        {{-- Laundry Info --}}
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="w-1 h-3 bg-brand rounded-full"></span>
+                                <h4 class="text-[11px] font-bold text-slate-800 uppercase tracking-widest">Informasi Laundry</h4>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Laundry</label>
+                                <input type="text" name="laundry_name" placeholder="Nama Toko Laundry" required>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">No. WhatsApp</label>
+                                <input type="text" name="phone" placeholder="0812..." required>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Logo Laundry</label>
+                                <input type="file" name="image"
+                                    class="block w-full text-[11px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-slate-600">
+                            </div>
+                        </div>
                     </div>
 
-                    <form action="{{ route('admin.laundries.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-                        @csrf
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-2 text-blue-600">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                    <h4 class="text-xs font-bold uppercase tracking-wider">Info Pemilik</h4>
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="block text-xs font-bold text-slate-700">Nama Pemilik</label>
-                                    <input type="text" name="partner_name" class="w-full rounded-xl border-slate-200 focus:ring-blue-600" required>
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="block text-xs font-bold text-slate-700">Email Login</label>
-                                    <input type="email" name="email" class="w-full rounded-xl border-slate-200 focus:ring-blue-600" required>
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="block text-xs font-bold text-slate-700">Password</label>
-                                    <input type="password" name="password" class="w-full rounded-xl border-slate-200 focus:ring-blue-600" required>
-                                </div>
-                            </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Alamat Lengkap</label>
+                        <textarea name="address" rows="2" placeholder="Jl. Raya Utama No. 123..."></textarea>
+                    </div>
 
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-2 text-rose-600">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                    <h4 class="text-xs font-bold uppercase tracking-wider">Info Laundry</h4>
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="block text-xs font-bold text-slate-700">Nama Laundry</label>
-                                    <input type="text" name="laundry_name" class="w-full rounded-xl border-slate-200 focus:ring-blue-600" required>
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="block text-xs font-bold text-slate-700">WhatsApp</label>
-                                    <input type="text" name="phone" class="w-full rounded-xl border-slate-200 focus:ring-blue-600" required>
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="block text-xs font-bold text-slate-700">Logo Laundry</label>
-                                    <input type="file" name="image" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block text-xs font-bold text-slate-700">Alamat Lengkap</label>
-                            <textarea name="address" rows="2" class="w-full rounded-xl border-slate-200 focus:ring-blue-600"></textarea>
-                        </div>
-
-                        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                            <x-secondary-button x-on:click="$dispatch('close')" class="rounded-xl">Batalkan</x-secondary-button>
-                            <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all">Daftarkan Partner</button>
-                        </div>
-                    </form>
-                </div>
+                    <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-50">
+                        <button type="button" @click="$dispatch('close')" class="btn btn-ghost">Batal</button>
+                        <button type="submit" class="btn btn-primary px-8">Daftarkan Partner</button>
+                    </div>
+                </form>
             </div>
         </x-modal>
     </div>
+
+    <script>
+        const ACTIVE_TAB_CLASSES = ['!bg-brand', '!text-white', '!border-brand', 'shadow-brand/20'];
+        const INACTIVE_TAB_CLASSES = ['bg-white', 'text-slate-500', 'border-slate-100'];
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-panel').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove(...ACTIVE_TAB_CLASSES);
+                btn.classList.add(...INACTIVE_TAB_CLASSES);
+            });
+
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('tab-btn-' + tabId);
+            activeBtn.classList.remove(...INACTIVE_TAB_CLASSES);
+            activeBtn.classList.add(...ACTIVE_TAB_CLASSES);
+            localStorage.setItem('laundryAdminTab', tabId);
+        }
+
+        const savedTab = localStorage.getItem('laundryAdminTab') || 'pesanan';
+        switchTab(savedTab);
+    </script>
 </x-app-layout>

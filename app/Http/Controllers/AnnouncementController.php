@@ -57,7 +57,7 @@ class AnnouncementController extends Controller
             'expires_at' => 'nullable|date',
         ]);
 
-        Announcement::create([
+        $announcement = Announcement::create([
             'title' => $request->title,
             'content' => $request->content,
             'type' => $request->type,
@@ -67,8 +67,29 @@ class AnnouncementController extends Controller
             'user_id' => auth()->id(),
         ]);
 
+        // Send Email Notifications
+        if ($announcement->is_active) {
+            $targetRole = $request->target_role;
+            $usersQuery = \App\Models\User::query();
+            
+            if ($targetRole !== 'all') {
+                $usersQuery->where('role', $targetRole);
+            }
+            
+            $users = $usersQuery->get();
+
+            foreach ($users as $user) {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($user->email)->queue(new \App\Mail\AnnouncementMail($announcement, $user->name));
+                } catch (\Exception $e) {
+                    // Fail silently or log error if mail server not configured
+                    \Log::error("Failed to send announcement email to {$user->email}: " . $e->getMessage());
+                }
+            }
+        }
+
         return redirect()->route('admin.announcements.index')
-            ->with('success', 'Pengumuman berhasil diterbitkan!');
+            ->with('success', 'Pengumuman berhasil diterbitkan dan dikirim ke email target!');
     }
 
     public function edit(Announcement $announcement)
