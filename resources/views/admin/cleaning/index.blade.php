@@ -1,7 +1,7 @@
 <x-app-layout>
     @section('header_title', 'Cleaning Hub')
 
-    <div class="space-y-6 animate-fade-in">
+    <div x-data="{}" class="space-y-6 animate-fade-in">
         {{-- ===== TAB NAVIGATION ===== --}}
         <div class="flex overflow-x-auto gap-2 pb-1 no-scrollbar">
             <button onclick="switchTab('pesanan')" id="tab-btn-pesanan"
@@ -20,6 +20,27 @@
                 Paket Layanan
             </button>
         </div>
+
+        @if ($message = Session::get('success'))
+            <div class="badge badge-green w-full justify-start p-3 rounded-xl border border-emerald-100 mb-4">
+                <i class="fas fa-check-circle mr-2"></i>
+                {{ $message }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="badge badge-red w-full justify-start p-3 rounded-xl border border-red-100 mb-4 flex-col items-start gap-1">
+                <div class="flex items-center font-bold">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    Terdapat Kesalahan:
+                </div>
+                <ul class="list-disc list-inside text-[11px] ml-6">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         {{-- ===== TAB: PESANAN ===== --}}
         <div id="tab-pesanan" class="tab-panel space-y-6">
@@ -122,10 +143,10 @@
         {{-- ===== TAB: PETUGAS ===== --}}
         <div id="tab-petugas" class="tab-panel hidden space-y-6">
             <div class="flex justify-end">
-                <button @click="$dispatch('open-modal', 'register-cleaner')" class="btn btn-primary">
+                <a href="{{ route('admin.cleaning.cleaners.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus text-[10px]"></i>
                     Daftarkan Petugas
-                </button>
+                </a>
             </div>
 
             <div class="table-wrap">
@@ -180,10 +201,10 @@
         {{-- ===== TAB: PAKET ===== --}}
         <div id="tab-paket" class="tab-panel hidden space-y-6">
             <div class="flex justify-end">
-                <button @click="$dispatch('open-modal', 'add-package')" class="btn btn-primary">
+                <a href="{{ route('admin.cleaning.packages.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus text-[10px]"></i>
                     Tambah Paket
-                </button>
+                </a>
             </div>
 
             <div class="table-wrap">
@@ -224,75 +245,7 @@
             </div>
         </div>
 
-        {{-- ===== MODALS ===== --}}
-        {{-- Register Cleaner Modal --}}
-        <x-modal name="register-cleaner" focusable maxWidth="md">
-            <div class="p-8">
-                <div class="mb-8">
-                    <h3 class="text-xl font-bold text-slate-900 tracking-tight">Daftarkan Petugas Baru</h3>
-                    <p class="text-slate-500 text-[13px] mt-0.5">Berikan akses sistem kepada petugas kebersihan baru.
-                    </p>
-                </div>
-                <form action="{{ route('admin.cleaning.cleaners.store') }}" method="POST" enctype="multipart/form-data"
-                    class="space-y-5">
-                    @csrf
-                    <div class="space-y-1.5">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
-                        <input type="text" name="name" placeholder="Nama Petugas" required>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Login</label>
-                        <input type="email" name="email" placeholder="email@contoh.com" required>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
-                        <input type="password" name="password" placeholder="••••••••" required>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Foto Profil</label>
-                        <input type="file" name="photo"
-                            class="block w-full text-[11px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-slate-600">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Bio/Keahlian Singkat</label>
-                        <textarea name="bio" rows="2" placeholder="Contoh: Ahli pembersihan kamar & kamar mandi..."></textarea>
-                    </div>
-                    <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-50">
-                        <button type="button" @click="$dispatch('close')" class="btn btn-ghost">Batal</button>
-                        <button type="submit" class="btn btn-primary px-8">Daftarkan Petugas</button>
-                    </div>
-                </form>
-            </div>
-        </x-modal>
 
-        {{-- Add Package Modal --}}
-        <x-modal name="add-package" focusable maxWidth="md">
-            <div class="p-8">
-                <div class="mb-8">
-                    <h3 class="text-xl font-bold text-slate-900 tracking-tight">Tambah Paket Layanan</h3>
-                    <p class="text-slate-500 text-[13px] mt-0.5">Tentukan nama, rincian, dan harga paket baru.</p>
-                </div>
-                <form action="{{ route('admin.cleaning.packages.store') }}" method="POST" class="space-y-5">
-                    @csrf
-                    <div class="space-y-1.5">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Paket</label>
-                        <input type="text" name="name" placeholder="Contoh: Bebersih Kamar Mandi" required>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Harga (Rp)</label>
-                        <input type="number" name="price" placeholder="50000" required>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Deskripsi Layanan</label>
-                        <textarea name="description" rows="3" placeholder="Rincian apa saja yang dibersihkan..." required></textarea>
-                    </div>
-                    <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-50">
-                        <button type="button" @click="$dispatch('close')" class="btn btn-ghost">Batal</button>
-                        <button type="submit" class="btn btn-primary px-8">Simpan Paket</button>
-                    </div>
-                </form>
-            </div>
-        </x-modal>
     </div>
 
     <script>

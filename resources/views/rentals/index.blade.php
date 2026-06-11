@@ -66,7 +66,7 @@
                                     </div>
                                     <div>
                                         <div class="font-extrabold text-slate-900 text-sm">{{ $rental->tenant->user->name ?? 'Unknown' }}</div>
-                                        <div class="text-[11px] font-black text-brand uppercase tracking-widest mt-0.5">UNIT #{{ $rental->room->room_number ?? '-' }}</div>
+                                        <div class="text-[11px] font-black text-brand uppercase tracking-widest mt-0.5">UNIT #{{ $rental->room->room_number ?? '-' }} &bull; {{ $rental->duration_type === 'yearly' ? 'TAHUNAN' : 'BULANAN' }}</div>
                                     </div>
                                 </div>
                             </td>

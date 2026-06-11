@@ -42,6 +42,11 @@ class LaundryController extends Controller
         return view('admin.laundries.index', compact('laundries', 'orders', 'services'));
     }
 
+    public function adminCreate()
+    {
+        return view('admin.laundries.create');
+    }
+
     public function adminStore(Request $request)
     {
         $request->validate([

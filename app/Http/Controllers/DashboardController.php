@@ -85,9 +85,17 @@ class DashboardController extends Controller
 
             $currentPaymentStatus = 'unpaid';
             if ($activeRental) {
-                $payment = RentPayment::where('tenants_id', $tenant->id)
-                    ->where('month', date('F Y'))
-                    ->first();
+                if ($activeRental->duration_type === 'yearly') {
+                    $payment = RentPayment::where('rental_id', $activeRental->id)
+                        ->orderByRaw("FIELD(status, 'paid', 'pending', 'unpaid')")
+                        ->first();
+                } else {
+                    $currentMonth = date('F Y');
+                    $payment = RentPayment::where('tenants_id', $tenant->id)
+                        ->whereRaw('LOWER(month) = ?', [strtolower($currentMonth)])
+                        ->orderByRaw("FIELD(status, 'paid', 'pending', 'unpaid')")
+                        ->first();
+                }
                 
                 if ($payment) {
                     $currentPaymentStatus = $payment->status;

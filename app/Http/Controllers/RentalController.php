@@ -76,11 +76,16 @@ class RentalController extends Controller
 
         $room = \App\Models\Room::findOrFail($validatedData['room_id']);
         $startDate = \Carbon\Carbon::parse($validatedData['start_date']);
-        $endDate = $startDate->copy()->addMonths($validatedData['duration_months']);
+        $durationMonths = $validatedData['duration_months'];
+        $endDate = $startDate->copy()->addMonths($durationMonths);
+
+        $durationType = ($durationMonths >= 12) ? 'yearly' : 'monthly';
+        $monthlyPrice = ($durationType === 'yearly') ? ($room->price * 0.9) : $room->price;
 
         $validatedData['end_date'] = $endDate;
-        $validatedData['monthly_price'] = $room->price;
-        $validatedData['total_price'] = $room->price * $validatedData['duration_months'];
+        $validatedData['monthly_price'] = $monthlyPrice;
+        $validatedData['total_price'] = $monthlyPrice * $durationMonths;
+        $validatedData['duration_type'] = $durationType;
         unset($validatedData['duration_months']);
 
         Rental::create($validatedData);

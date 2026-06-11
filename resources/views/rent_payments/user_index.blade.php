@@ -85,7 +85,7 @@
                                         <span class="badge {{ $badge }}">{{ strtoupper($payment->status) }}</span>
                                     </td>
                                     <td class="text-right" data-label="Aksi">
-                                        <a href="{{ route('rent-payments.show', $payment->id) }}" class="btn btn-outline !h-9 !px-4 !text-[11px] hover:!bg-brand hover:!text-white hover:!border-brand transition-all">
+                                        <a href="{{ route('rent-payments.user-invoice', $payment->id) }}" class="btn btn-outline !h-9 !px-4 !text-[11px] hover:!bg-brand hover:!text-white hover:!border-brand transition-all">
                                             Invoice
                                         </a>
                                     </td>
@@ -122,8 +122,12 @@
                         </div>
                         <div class="space-y-4 pt-4 border-t border-slate-50">
                             <div class="flex justify-between items-center text-xs">
+                                <span class="text-slate-400">Tipe Kontrak</span>
+                                <span class="font-bold text-slate-900 uppercase">{{ $activeRental->duration_type === 'yearly' ? 'Tahunan (Hemat 10%)' : 'Bulanan' }}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
                                 <span class="text-slate-400">Harga Sewa</span>
-                                <span class="font-bold text-slate-900">Rp {{ number_format($activeRental->room->price, 0, ',', '.') }}</span>
+                                <span class="font-bold text-slate-900">Rp {{ number_format($activeRental->monthly_price ?? $activeRental->room->price, 0, ',', '.') }}</span>
                             </div>
                             <div class="flex justify-between items-center text-xs">
                                 <span class="text-slate-400">Jatuh Tempo</span>
@@ -147,6 +151,10 @@
                         <li class="flex gap-3 items-start">
                             <div class="w-1.5 h-1.5 bg-brand rounded-full mt-1.5 flex-shrink-0"></div>
                             <p class="text-xs text-slate-500 leading-relaxed">Simpan bukti transfer jika Anda menggunakan metode manual.</p>
+                        </li>
+                        <li class="flex gap-3 items-start text-rose-600">
+                            <div class="w-1.5 h-1.5 bg-rose-500 rounded-full mt-1.5 flex-shrink-0"></div>
+                            <p class="text-xs font-extrabold leading-relaxed">No-Refund Policy: Pembayaran sewa yang telah lunas tidak dapat di-refund dengan alasan apapun.</p>
                         </li>
                     </ul>
                 </div>
@@ -176,8 +184,21 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.snap_token) {
+                        // Store the payment ID for status check
+                        const paymentId = data.payment_id;
+
                         window.snap.pay(data.snap_token, {
-                            onSuccess: function(result) { window.location.reload(); },
+                            onSuccess: function(result) {
+                                // Update status to paid on the server before reloading
+                                if (paymentId) {
+                                    fetch(`/my-payments/${paymentId}/check-status`, {
+                                        method: 'GET',
+                                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                                    }).finally(() => { window.location.reload(); });
+                                } else {
+                                    window.location.reload();
+                                }
+                            },
                             onPending: function(result) { window.location.reload(); },
                             onError: function(result) { alert("Pembayaran gagal!"); payButton.disabled = false; payButton.innerHTML = 'Bayar Sekarang'; },
                             onClose: function() { payButton.disabled = false; payButton.innerHTML = 'Bayar Sekarang'; }

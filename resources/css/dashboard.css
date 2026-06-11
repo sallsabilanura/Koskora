@@ -629,6 +629,21 @@ select.form-select:focus {
     .sidebar.open {
         transform: translateX(0);
     }
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 45;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sidebar-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
     .navbar { padding: 0 1rem; }
     .page-content { padding: 1.25rem; }
 }

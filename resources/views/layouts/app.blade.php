@@ -39,12 +39,12 @@
     <body class="antialiased selection:bg-brand/10 selection:text-brand">
         <div class="dashboard-container">
             <!-- Sidebar Overlay (mobile) -->
-            @if(auth()->user()->role !== 'user')
+            @if(!in_array(auth()->user()->role, ['user', 'laundry', 'cleaner']))
             <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
             @endif
 
             <!-- Sidebar Navigation -->
-            @if(auth()->user()->role === 'user')
+            @if(in_array(auth()->user()->role, ['user', 'laundry', 'cleaner']))
                 <div class="hidden lg:block">
                     <x-sidebar />
                 </div>
@@ -57,7 +57,7 @@
                 {{-- Navbar (Premium & Sticky) --}}
                 <nav class="navbar">
                     {{-- Mobile Hamburger --}}
-                    @if(auth()->user()->role !== 'user')
+                    @if(!in_array(auth()->user()->role, ['user', 'laundry', 'cleaner', 'admin', 'superadmin']))
                     <button class="lg:hidden w-10 h-10 flex items-center justify-center text-slate-400 hover:text-brand transition-colors mr-4" onclick="toggleSidebar()">
                         <i class="fas fa-bars-staggered"></i>
                     </button>
@@ -65,7 +65,7 @@
 
                     {{-- Page Context --}}
                     <div class="flex-1">
-                        @if(auth()->user()->role === 'user')
+                        @if(in_array(auth()->user()->role, ['user', 'laundry', 'cleaner', 'admin', 'superadmin']))
                             {{-- On mobile, show logo; on desktop, show title text --}}
                             <div class="block lg:hidden">
                                 <img src="{{ asset('koskora.png') }}" alt="KosKora" class="h-8 w-auto">
@@ -86,8 +86,8 @@
                             <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
                         </button>
 
-                        {{-- Mobile Logout for User --}}
-                        @if(auth()->user()->role === 'user')
+                        {{-- Mobile Logout for User / Partner roles --}}
+                        @if(in_array(auth()->user()->role, ['user', 'laundry', 'cleaner', 'admin', 'superadmin']))
                         <form method="POST" action="{{ route('logout') }}" class="block lg:hidden m-0 p-0">
                             @csrf
                             <button type="submit" onclick="return confirm('Keluar dari aplikasi?')" class="w-10 h-10 rounded-xl flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-500 transition-all">
@@ -110,13 +110,13 @@
                 </nav>
 
                 <!-- Page Content Ecosystem -->
-                <main class="page-content {{ auth()->user()->role === 'user' ? 'has-bottom-nav' : '' }}">
+                <main class="page-content {{ in_array(auth()->user()->role, ['user', 'laundry', 'cleaner', 'admin', 'superadmin']) ? 'has-bottom-nav' : '' }}">
                     {{ $slot }}
                 </main>
             </div>
         </div>
 
-        {{-- ===== GLOBAL BOTTOM NAV (User Role Only) ===== --}}
+        {{-- ===== GLOBAL BOTTOM NAV (User Role) ===== --}}
         @if(auth()->user()->role === 'user')
         <nav class="ud-bottom-nav lg:hidden">
             <a href="{{ route('dashboard') }}" class="ud-bnav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
@@ -140,6 +140,74 @@
             <a href="{{ route('profile.edit') }}" class="ud-bnav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
                 <i class="fas fa-user"></i>
                 <span>Profil</span>
+            </a>
+        </nav>
+        @endif
+
+        {{-- ===== BOTTOM NAV: LAUNDRY PARTNER ===== --}}
+        @if(auth()->user()->role === 'laundry')
+        <nav class="ud-bottom-nav lg:hidden">
+            <a href="{{ route('laundry.orders.index') }}" class="ud-bnav-item {{ request()->routeIs('laundry.orders.*') ? 'active' : '' }}">
+                <i class="fas fa-list-check"></i>
+                <span>Pesanan</span>
+            </a>
+            <a href="{{ route('laundry.services.index') }}" class="ud-bnav-item ud-bnav-center {{ request()->routeIs('laundry.services.*') ? 'active' : '' }}">
+                <div class="ud-bnav-center-btn">
+                    <i class="fas fa-soap"></i>
+                </div>
+                <span>Layanan</span>
+            </a>
+            <a href="{{ route('laundry.withdrawals.index') }}" class="ud-bnav-item {{ request()->routeIs('laundry.withdrawals.*') ? 'active' : '' }}">
+                <i class="fas fa-wallet"></i>
+                <span>Saldo</span>
+            </a>
+        </nav>
+        @endif
+
+        {{-- ===== BOTTOM NAV: CLEANER PARTNER ===== --}}
+        @if(auth()->user()->role === 'cleaner')
+        <nav class="ud-bottom-nav lg:hidden">
+            <a href="{{ route('cleaner.orders.index') }}" class="ud-bnav-item {{ request()->routeIs('cleaner.orders.*') ? 'active' : '' }}">
+                <i class="fas fa-list-check"></i>
+                <span>Tugas</span>
+            </a>
+            <a href="{{ route('cleaner.orders.index') }}" class="ud-bnav-item ud-bnav-center">
+                <div class="ud-bnav-center-btn">
+                    <i class="fas fa-broom"></i>
+                </div>
+                <span>Beranda</span>
+            </a>
+            <a href="{{ route('cleaner.withdrawals.index') }}" class="ud-bnav-item {{ request()->routeIs('cleaner.withdrawals.*') ? 'active' : '' }}">
+                <i class="fas fa-wallet"></i>
+                <span>Saldo</span>
+            </a>
+        </nav>
+        @endif
+
+        {{-- ===== BOTTOM NAV: ADMIN & SUPER ADMIN ===== --}}
+        @if(auth()->user()->isAnyAdmin())
+        <nav class="ud-bottom-nav lg:hidden">
+            <a href="{{ route('dashboard') }}" class="ud-bnav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <i class="fas fa-home-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ route('rooms.index') }}" class="ud-bnav-item {{ request()->routeIs('rooms.*') ? 'active' : '' }}">
+                <i class="fas fa-door-open"></i>
+                <span>Kamar</span>
+            </a>
+            <a href="javascript:void(0)" onclick="toggleSidebar()" class="ud-bnav-item ud-bnav-center">
+                <div class="ud-bnav-center-btn">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <span>Lainnya</span>
+            </a>
+            <a href="{{ route('tenants.index') }}" class="ud-bnav-item {{ request()->routeIs('tenants.*') ? 'active' : '' }}">
+                <i class="fas fa-user-friends"></i>
+                <span>Penyewa</span>
+            </a>
+            <a href="{{ route('rent-payments.index') }}" class="ud-bnav-item {{ request()->routeIs('rent-payments.*') ? 'active' : '' }}">
+                <i class="fas fa-credit-card"></i>
+                <span>Bayar</span>
             </a>
         </nav>
         @endif

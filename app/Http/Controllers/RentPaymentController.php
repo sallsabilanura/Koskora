@@ -166,10 +166,16 @@ class RentPaymentController extends Controller
     {
         $rental = Rental::with('room')->findOrFail($request->query('rental_id'));
         
-        // Generate list of months (Current + 3 months ahead)
+        // Generate list of months (Current + 3 months ahead) or Yearly range
         $months = [];
-        for ($i = 0; $i < 4; $i++) {
-            $months[] = now()->addMonths($i)->format('F Y');
+        if ($rental->duration_type === 'yearly') {
+            $startYear = \Carbon\Carbon::parse($rental->start_date)->format('Y');
+            $endYear = \Carbon\Carbon::parse($rental->end_date)->format('Y');
+            $months[] = "Sewa 1 Tahun (" . $startYear . " - " . $endYear . ")";
+        } else {
+            for ($i = 0; $i < 4; $i++) {
+                $months[] = now()->addMonths($i)->format('F Y');
+            }
         }
 
         return view('rent_payments.user_create', compact('rental', 'months'));
@@ -192,13 +198,13 @@ class RentPaymentController extends Controller
         $rental = Rental::findOrFail($request->rental_id);
 
         // Prevent duplicate payments for the same month (if already paid or pending)
-        $exists = RentPayment::where('tenants_id', $rental->tenant_id)
+        $exists = RentPayment::where('rental_id', $rental->id)
             ->where('month', $request->month)
             ->whereIn('status', ['paid', 'pending'])
             ->exists();
 
         if ($exists) {
-            return redirect()->back()->withErrors(['month' => 'Pembayaran untuk bulan ini sudah ada atau sedang menunggu verifikasi.'])->withInput();
+            return redirect()->back()->withErrors(['month' => 'Pembayaran untuk periode ini sudah ada atau sedang menunggu verifikasi.'])->withInput();
         }
 
         $data = [
@@ -258,6 +264,23 @@ class RentPaymentController extends Controller
     }
 
     /**
+     * Show invoice for a specific payment (user-facing, with ownership check).
+     */
+    public function userInvoice(RentPayment $rentPayment)
+    {
+        $user = auth()->user();
+        $tenant = $user->tenant;
+
+        // Ensure payment belongs to this tenant
+        if (!$tenant || $rentPayment->tenants_id !== $tenant->id) {
+            abort(403);
+        }
+
+        $rentPayment->load(['room', 'rental', 'tenants.user']);
+        return view('rent_payments.user_invoice', compact('rentPayment'));
+    }
+
+    /**
      * Display a listing of the user's own payments.
      */
     public function myPayments()
@@ -277,9 +300,17 @@ class RentPaymentController extends Controller
         $currentPaymentStatus = 'unpaid';
         $currentPayment = null;
         if ($activeRental) {
-            $currentPayment = RentPayment::where('tenants_id', $tenant->id)
-                ->where('month', date('F Y'))
-                ->first();
+            if ($activeRental->duration_type === 'yearly') {
+                $currentPayment = RentPayment::where('rental_id', $activeRental->id)
+                    ->orderByRaw("FIELD(status, 'paid', 'pending', 'unpaid')")
+                    ->first();
+            } else {
+                $currentMonth = date('F Y'); // e.g. "June 2026"
+                $currentPayment = RentPayment::where('tenants_id', $tenant->id)
+                    ->whereRaw('LOWER(month) = ?', [strtolower($currentMonth)])
+                    ->orderByRaw("FIELD(status, 'paid', 'pending', 'unpaid')")
+                    ->first();
+            }
             
             if ($currentPayment) {
                 $currentPaymentStatus = $currentPayment->status;
@@ -309,23 +340,42 @@ class RentPaymentController extends Controller
         $rental = Rental::with(['tenant', 'room'])->findOrFail($request->rental_id);
         $user = auth()->user();
 
-        // Check if there's already an active (unpaid/pending/cancelled) midtrans payment for this month
+        // Check if there's already an active (unpaid/pending/cancelled) midtrans payment
         $month = date('F Y');
+        if ($rental->duration_type === 'yearly') {
+            $startYear = \Carbon\Carbon::parse($rental->start_date)->format('Y');
+            $endYear = \Carbon\Carbon::parse($rental->end_date)->format('Y');
+            $month = "Sewa 1 Tahun (" . $startYear . " - " . $endYear . ")";
+        }
         
-        // Find existing unpaid/failed midtrans payment to reuse
-        $payment = RentPayment::where('rental_id', $rental->id)
-            ->where('month', $month)
-            ->where('method', 'Midtrans')
+        $amount = ($rental->duration_type === 'yearly') ? $rental->total_price : ($rental->monthly_price ?? $rental->room->price);
+
+        $paymentQuery = RentPayment::where('rental_id', $rental->id);
+        if ($rental->duration_type !== 'yearly') {
+            $paymentQuery->where('month', $month);
+        }
+        
+        $payment = $paymentQuery->where('method', 'Midtrans')
             ->whereIn('status', ['unpaid', 'pending'])
             ->first();
 
-        if (!$payment) {
+        if ($payment) {
+            // Update the amount and month description if it changed (e.g. package changed to yearly)
+            if ($payment->amount != $amount || $payment->month != $month) {
+                $payment->update([
+                    'amount' => $amount,
+                    'month' => $month,
+                    'snap_token' => null, // Reset snap token to force regeneration with new amount
+                    'transaction_id' => null
+                ]);
+            }
+        } else {
             $payment = RentPayment::create([
                 'rental_id' => $rental->id,
                 'room_id' => $rental->room_id,
                 'tenants_id' => $rental->tenant_id,
                 'month' => $month,
-                'amount' => $rental->monthly_price ?? $rental->room->price,
+                'amount' => $amount,
                 'payment_date' => now(),
                 'status' => 'unpaid',
                 'method' => 'Midtrans',
@@ -365,7 +415,10 @@ class RentPaymentController extends Controller
                 'transaction_id' => $params['transaction_details']['order_id']
             ]);
 
-            return response()->json(['snap_token' => $snapToken]);
+            return response()->json([
+                'snap_token' => $snapToken,
+                'payment_id' => $payment->id,
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

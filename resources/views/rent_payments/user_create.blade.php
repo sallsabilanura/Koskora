@@ -101,7 +101,7 @@
                             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nominal Pembayaran</label>
                             <div class="relative flex items-center">
                                 <span class="absolute left-4 font-extrabold text-slate-400">Rp</span>
-                                <input type="number" name="amount" value="{{ old('amount', $rental->monthly_price ?? $rental->room->price) }}" class="w-full pl-12 pr-4 h-14 bg-slate-100 border-2 border-slate-100 rounded-2xl font-extrabold text-slate-500 focus:ring-0" readonly>
+                                <input type="number" name="amount" value="{{ old('amount', $rental->duration_type === 'yearly' ? $rental->total_price : ($rental->monthly_price ?? $rental->room->price)) }}" class="w-full pl-12 pr-4 h-14 bg-slate-100 border-2 border-slate-100 rounded-2xl font-extrabold text-slate-500 focus:ring-0" readonly>
                             </div>
                             <p class="text-[9px] font-bold text-slate-400 pl-1 uppercase tracking-widest leading-none">Automated Billing Price</p>
                         </div>

@@ -17,6 +17,7 @@ class Rental extends Model
         'total_price',
         'monthly_price',
         'status',
+        'duration_type',
     ];
 
     public function tenant()

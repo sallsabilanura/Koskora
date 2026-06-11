@@ -53,7 +53,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/my-payments/create', [RentPaymentController::class, 'userCreate'])->name('rent-payments.user-create');
         Route::post('/my-payments/store', [RentPaymentController::class, 'userStore'])->name('rent-payments.user-store');
         Route::post('/my-payments/midtrans-token', [RentPaymentController::class, 'getSnapToken'])->name('rent-payments.midtrans-token');
-        Route::post('/my-payments/{rentPayment}/check-status', [RentPaymentController::class, 'checkPaymentStatus'])->name('rent-payments.check-status');
+        Route::get('/my-payments/{rentPayment}/check-status', [RentPaymentController::class, 'checkPaymentStatus'])->name('rent-payments.check-status');
+        Route::get('/my-payments/{rentPayment}/invoice', [RentPaymentController::class, 'userInvoice'])->name('rent-payments.user-invoice');
         // Laundry Service (User/Tenant)
         Route::get('/laundry', [LaundryController::class, 'userIndex'])->name('user.laundry.index');
         Route::get('/laundry/order/{laundry}', [LaundryController::class, 'userOrder'])->name('user.laundry.order');
@@ -130,13 +131,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         // Laundry Management
         Route::get('/admin/laundries', [LaundryController::class, 'adminIndex'])->name('admin.laundries.index');
+        Route::get('/admin/laundries/create', [LaundryController::class, 'adminCreate'])->name('admin.laundries.create');
         Route::post('/admin/laundries', [LaundryController::class, 'adminStore'])->name('admin.laundries.store');
         Route::get('/admin/laundries/{laundry}/edit', [LaundryController::class, 'adminEdit'])->name('admin.laundries.edit');
         Route::put('/admin/laundries/{laundry}', [LaundryController::class, 'adminUpdate'])->name('admin.laundries.update');
 
         // Cleaning Management
         Route::get('/admin/cleaning', [CleaningController::class, 'adminIndex'])->name('admin.cleaning.index');
+        Route::get('/admin/cleaning/cleaners/create', [CleaningController::class, 'adminCleanerCreate'])->name('admin.cleaning.cleaners.create');
         Route::post('/admin/cleaning/cleaners', [CleaningController::class, 'adminCleanerStore'])->name('admin.cleaning.cleaners.store');
+        Route::get('/admin/cleaning/packages/create', [CleaningController::class, 'adminPackageCreate'])->name('admin.cleaning.packages.create');
         Route::post('/admin/cleaning/packages', [CleaningController::class, 'adminPackageStore'])->name('admin.cleaning.packages.store');
 
         // Announcement Management

@@ -169,7 +169,7 @@
                     <div class="space-y-6">
                         <div class="space-y-2">
                             <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Alamat Lengkap</label>
-                            <textarea name="address" rows="2" placeholder="Jl. Merdeka No. 123...">{{ old('address') }}</textarea>
+                            <textarea name="address" rows="2" placeholder="Jl. Merdeka No. 123...">{{ old('address', auth()->user()->address) }}</textarea>
                         </div>
                         <div class="space-y-2">
                             <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Deskripsi Tambahan</label>
@@ -208,6 +208,15 @@
                     Simpan Unit Sekarang
                 </button>
             </div>
+
+            <input type="hidden" id="default_province_id" value="{{ old('province_id', auth()->user()->province_id) }}">
+            <input type="hidden" id="default_province" value="{{ old('province', auth()->user()->province) }}">
+            <input type="hidden" id="default_city_id" value="{{ old('city_id', auth()->user()->city_id) }}">
+            <input type="hidden" id="default_city" value="{{ old('city', auth()->user()->city) }}">
+            <input type="hidden" id="default_district_id" value="{{ old('district_id', auth()->user()->district_id) }}">
+            <input type="hidden" id="default_district" value="{{ old('district', auth()->user()->district) }}">
+            <input type="hidden" id="default_village_id" value="{{ old('village_id', auth()->user()->village_id) }}">
+            <input type="hidden" id="default_village" value="{{ old('village', auth()->user()->village) }}">
         </form>
     </div>
 
@@ -223,60 +232,145 @@
         const dSelect = document.getElementById('district-select');
         const vSelect = document.getElementById('village-select');
 
-        // Fetch Provinces
-        fetch(`${baseUrl}/provinces.json`).then(res => res.json()).then(data => {
-            data.forEach(p => {
+        // Append hidden inputs for names if they don't exist
+        const names = ['province', 'city', 'district', 'village'];
+        names.forEach(name => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.id = name + '-name-input';
+            document.getElementById('room-form').appendChild(input);
+        });
+
+        const pInputName = document.getElementById('province-name-input');
+        const cInputName = document.getElementById('city-name-input');
+        const dInputName = document.getElementById('district-name-input');
+        const vInputName = document.getElementById('village-name-input');
+
+        const defProvinceId = document.getElementById('default_province_id').value;
+        const defProvinceName = document.getElementById('default_province').value;
+        const defCityId = document.getElementById('default_city_id').value;
+        const defCityName = document.getElementById('default_city').value;
+        const defDistrictId = document.getElementById('default_district_id').value;
+        const defDistrictName = document.getElementById('default_district').value;
+        const defVillageId = document.getElementById('default_village_id').value;
+        const defVillageName = document.getElementById('default_village').value;
+
+        async function initAddress() {
+            // Load provinces
+            const res = await fetch(`${baseUrl}/provinces.json`);
+            const provinces = await res.json();
+            provinces.forEach(p => {
                 const opt = document.createElement('option');
                 opt.value = p.id;
                 opt.textContent = p.name;
+                if (p.id === defProvinceId) opt.selected = true;
                 pSelect.appendChild(opt);
             });
-        });
 
-        pSelect.addEventListener('change', function() {
-            resetSelect(cSelect, 'Kota/Kabupaten'); resetSelect(dSelect, 'Kecamatan'); resetSelect(vSelect, 'Kelurahan/Desa');
-            if (this.value) {
-                document.getElementById('province-name-input').value = this.options[this.selectedIndex].text;
-                fetch(`${baseUrl}/regencies/${this.value}.json`).then(res => res.json()).then(data => {
-                    cSelect.disabled = false;
-                    data.forEach(item => { const opt = document.createElement('option'); opt.value = item.id; opt.textContent = item.name; cSelect.appendChild(opt); });
-                });
-            } else { document.getElementById('province-name-input').value = ''; }
-        });
+            if (defProvinceId) {
+                pInputName.value = defProvinceName;
+                await loadCities(defProvinceId, defCityId);
+            }
+            if (defCityId) {
+                cInputName.value = defCityName;
+                await loadDistricts(defCityId, defDistrictId);
+            }
+            if (defDistrictId) {
+                dInputName.value = defDistrictName;
+                await loadVillages(defDistrictId, defVillageId);
+            }
+            if (defVillageId) {
+                vInputName.value = defVillageName;
+            }
+        }
 
-        cSelect.addEventListener('change', function() {
-            resetSelect(dSelect, 'Kecamatan'); resetSelect(vSelect, 'Kelurahan/Desa');
-            if (this.value) {
-                document.getElementById('city-name-input').value = this.options[this.selectedIndex].text;
-                fetch(`${baseUrl}/districts/${this.value}.json`).then(res => res.json()).then(data => {
-                    dSelect.disabled = false;
-                    data.forEach(item => { const opt = document.createElement('option'); opt.value = item.id; opt.textContent = item.name; dSelect.appendChild(opt); });
-                });
-            } else { document.getElementById('city-name-input').value = ''; }
-        });
-
-        dSelect.addEventListener('change', function() {
+        async function loadCities(provinceId, selectedId = null) {
+            resetSelect(cSelect, 'Kota/Kabupaten');
+            resetSelect(dSelect, 'Kecamatan');
             resetSelect(vSelect, 'Kelurahan/Desa');
-            if (this.value) {
-                document.getElementById('district-name-input').value = this.options[this.selectedIndex].text;
-                fetch(`${baseUrl}/villages/${this.value}.json`).then(res => res.json()).then(data => {
-                    vSelect.disabled = false;
-                    data.forEach(item => { const opt = document.createElement('option'); opt.value = item.id; opt.textContent = item.name; vSelect.appendChild(opt); });
-                });
-            } else { document.getElementById('district-name-input').value = ''; }
-        });
+            const res = await fetch(`${baseUrl}/regencies/${provinceId}.json`);
+            const cities = await res.json();
+            cSelect.disabled = false;
+            cities.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.name;
+                if (item.id === selectedId) opt.selected = true;
+                cSelect.appendChild(opt);
+            });
+        }
 
-        vSelect.addEventListener('change', function() {
-            if (this.value) { document.getElementById('village-name-input').value = this.options[this.selectedIndex].text; }
-            else { document.getElementById('village-name-input').value = ''; }
-        });
+        async function loadDistricts(cityId, selectedId = null) {
+            resetSelect(dSelect, 'Kecamatan');
+            resetSelect(vSelect, 'Kelurahan/Desa');
+            const res = await fetch(`${baseUrl}/districts/${cityId}.json`);
+            const districts = await res.json();
+            dSelect.disabled = false;
+            districts.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.name;
+                if (item.id === selectedId) opt.selected = true;
+                dSelect.appendChild(opt);
+            });
+        }
+
+        async function loadVillages(districtId, selectedId = null) {
+            resetSelect(vSelect, 'Kelurahan/Desa');
+            const res = await fetch(`${baseUrl}/villages/${districtId}.json`);
+            const villages = await res.json();
+            vSelect.disabled = false;
+            villages.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.name;
+                if (item.id === selectedId) opt.selected = true;
+                vSelect.appendChild(opt);
+            });
+        }
 
         function resetSelect(el, label) { el.innerHTML = `<option value="">Pilih ${label}</option>`; el.disabled = true; }
 
-        const names = ['province', 'city', 'district', 'village'];
-        names.forEach(name => {
-            const input = document.createElement('input'); input.type = 'hidden'; input.name = name; input.id = name + '-name-input';
-            document.getElementById('room-form').appendChild(input);
+        pSelect.addEventListener('change', async function() {
+            pInputName.value = this.value ? this.options[this.selectedIndex].text : '';
+            cInputName.value = '';
+            dInputName.value = '';
+            vInputName.value = '';
+            if (this.value) {
+                await loadCities(this.value);
+            } else {
+                resetSelect(cSelect, 'Kota/Kabupaten'); resetSelect(dSelect, 'Kecamatan'); resetSelect(vSelect, 'Kelurahan/Desa');
+            }
+        });
+
+        cSelect.addEventListener('change', async function() {
+            cInputName.value = this.value ? this.options[this.selectedIndex].text : '';
+            dInputName.value = '';
+            vInputName.value = '';
+            if (this.value) {
+                await loadDistricts(this.value);
+            } else {
+                resetSelect(dSelect, 'Kecamatan'); resetSelect(vSelect, 'Kelurahan/Desa');
+            }
+        });
+
+        dSelect.addEventListener('change', async function() {
+            dInputName.value = this.value ? this.options[this.selectedIndex].text : '';
+            vInputName.value = '';
+            if (this.value) {
+                await loadVillages(this.value);
+            } else {
+                resetSelect(vSelect, 'Kelurahan/Desa');
+            }
+        });
+
+        vSelect.addEventListener('change', function() {
+            vInputName.value = this.value ? this.options[this.selectedIndex].text : '';
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initAddress();
         });
 
         function handleFileSelect(event) {

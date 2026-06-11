@@ -2,6 +2,27 @@
     @section('header_title', 'Security Management')
 
     <div class="space-y-6 animate-fade-in">
+        @if ($message = Session::get('success'))
+            <div class="badge badge-green w-full justify-start p-3 rounded-xl border border-emerald-100 mb-4">
+                <i class="fas fa-check-circle mr-2"></i>
+                {{ $message }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="badge badge-red w-full justify-start p-3 rounded-xl border border-red-100 mb-4 flex-col items-start gap-1">
+                <div class="flex items-center font-bold">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    Terdapat Kesalahan:
+                </div>
+                <ul class="list-disc list-inside text-[11px] ml-6">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         {{-- ===== TAB NAVIGATION ===== --}}
         <div class="flex overflow-x-auto gap-2 pb-1 no-scrollbar">
             @php

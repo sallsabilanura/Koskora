@@ -1,7 +1,7 @@
 <x-app-layout>
     @section('header_title', 'Laundry Hub')
 
-    <div class="space-y-6 animate-fade-in">
+    <div x-data="{}" class="space-y-6 animate-fade-in">
         {{-- ===== TAB NAVIGATION ===== --}}
         <div class="flex overflow-x-auto gap-2 pb-1 no-scrollbar">
             <button onclick="switchTab('pesanan')" id="tab-btn-pesanan"
@@ -22,9 +22,23 @@
         </div>
 
         @if ($message = Session::get('success'))
-            <div class="badge badge-green w-full justify-start p-3 rounded-xl border border-emerald-100">
+            <div class="badge badge-green w-full justify-start p-3 rounded-xl border border-emerald-100 mb-4">
                 <i class="fas fa-check-circle mr-2"></i>
                 {{ $message }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="badge badge-red w-full justify-start p-3 rounded-xl border border-red-100 mb-4 flex-col items-start gap-1">
+                <div class="flex items-center font-bold">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    Terdapat Kesalahan:
+                </div>
+                <ul class="list-disc list-inside text-[11px] ml-6">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
@@ -124,10 +138,10 @@
         {{-- ===== TAB: PARTNER ===== --}}
         <div id="tab-partner" class="tab-panel hidden space-y-6">
             <div class="flex justify-end">
-                <button @click="$dispatch('open-modal', 'register-partner')" class="btn btn-primary">
+                <a href="{{ route('admin.laundries.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus text-[10px]"></i>
                     Daftarkan Partner
-                </button>
+                </a>
             </div>
 
             <div class="table-wrap">
@@ -235,76 +249,7 @@
             </div>
         </div>
 
-        {{-- ===== MODALS ===== --}}
-        <x-modal name="register-partner" focusable maxWidth="3xl">
-            <div class="p-8">
-                <div class="flex items-center justify-between mb-8">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-900 tracking-tight">Daftar Partner Baru</h3>
-                        <p class="text-slate-500 text-[13px] mt-0.5">Silakan lengkapi informasi partner laundry di bawah ini.</p>
-                    </div>
-                    <button @click="$dispatch('close')" class="nav-icon-btn">
-                        <i class="fas fa-times text-xs"></i>
-                    </button>
-                </div>
 
-                <form action="{{ route('admin.laundries.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-                    @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {{-- Owner Info --}}
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="w-1 h-3 bg-brand rounded-full"></span>
-                                <h4 class="text-[11px] font-bold text-slate-800 uppercase tracking-widest">Informasi Pemilik</h4>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Pemilik</label>
-                                <input type="text" name="partner_name" placeholder="Nama Lengkap" required>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Login</label>
-                                <input type="email" name="email" placeholder="email@contoh.com" required>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
-                                <input type="password" name="password" placeholder="••••••••" required>
-                            </div>
-                        </div>
-
-                        {{-- Laundry Info --}}
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="w-1 h-3 bg-brand rounded-full"></span>
-                                <h4 class="text-[11px] font-bold text-slate-800 uppercase tracking-widest">Informasi Laundry</h4>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Laundry</label>
-                                <input type="text" name="laundry_name" placeholder="Nama Toko Laundry" required>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">No. WhatsApp</label>
-                                <input type="text" name="phone" placeholder="0812..." required>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Logo Laundry</label>
-                                <input type="file" name="image"
-                                    class="block w-full text-[11px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-slate-600">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Alamat Lengkap</label>
-                        <textarea name="address" rows="2" placeholder="Jl. Raya Utama No. 123..."></textarea>
-                    </div>
-
-                    <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-50">
-                        <button type="button" @click="$dispatch('close')" class="btn btn-ghost">Batal</button>
-                        <button type="submit" class="btn btn-primary px-8">Daftarkan Partner</button>
-                    </div>
-                </form>
-            </div>
-        </x-modal>
     </div>
 
     <script>

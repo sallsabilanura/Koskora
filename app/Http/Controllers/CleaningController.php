@@ -41,6 +41,11 @@ class CleaningController extends Controller
         return view('admin.cleaning.index', compact('cleaners', 'packages', 'orders'));
     }
 
+    public function adminCleanerCreate()
+    {
+        return view('admin.cleaning.create_cleaner');
+    }
+
     public function adminCleanerStore(Request $request)
     {
         $request->validate([
@@ -81,6 +86,11 @@ class CleaningController extends Controller
     {
         $packages = CleaningPackage::all();
         return view('admin.cleaning.packages', compact('packages'));
+    }
+
+    public function adminPackageCreate()
+    {
+        return view('admin.cleaning.create_package');
     }
 
     public function adminPackageStore(Request $request)

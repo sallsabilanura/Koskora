@@ -91,14 +91,33 @@ class BookingController extends Controller
     {
         $user = Auth::user();
         
+        $request->validate([
+            'duration_type' => 'required|in:monthly,yearly',
+        ]);
+
+        $durationType = $request->input('duration_type', 'monthly');
+        $startDate = now();
+        $monthlyPrice = $room->price;
+
+        if ($durationType === 'yearly') {
+            $endDate = $startDate->copy()->addYear();
+            $monthlyPrice = $room->price * 0.9; // 10% discount
+            $totalPrice = $monthlyPrice * 12;
+        } else {
+            $endDate = $startDate->copy()->addMonth();
+            $totalPrice = $room->price;
+        }
+
         // Auto-create Rental record as PENDING
         Rental::create([
             'tenant_id' => $user->tenant->id,
             'room_id' => $room->id,
-            'start_date' => now(),
-            'end_date' => now()->addMonth(), // Default 1 month
-            'total_price' => $room->price,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'monthly_price' => $monthlyPrice,
+            'total_price' => $totalPrice,
             'status' => 'pending',
+            'duration_type' => $durationType,
         ]);
 
         // Room status stays 'available' until admin approves (ACC)
