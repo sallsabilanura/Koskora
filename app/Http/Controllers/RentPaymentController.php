@@ -19,14 +19,15 @@ class RentPaymentController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $query = RentPayment::with(['rental', 'room', 'tenants.user'])->latest();
 
         // Scope to admin's district via room
-        if ($adminDistrict) {
-            $query->whereHas('room', function ($q) use ($adminDistrict) {
-                $q->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $safeDistrict = $user->district ?? 'NOT_SET';
+            $query->whereHas('room', function ($q) use ($safeDistrict) {
+                $q->where('district', $safeDistrict);
             });
         }
 
@@ -56,9 +57,10 @@ class RentPaymentController extends Controller
 
         // Get tenants for filter dropdown, scoped to admin's district
         $tenantQuery = Tenants::with('user')->whereHas('rentPayments');
-        if ($adminDistrict) {
-            $tenantQuery->whereHas('rentals.room', function ($q) use ($adminDistrict) {
-                $q->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $safeDistrict = $user->district ?? 'NOT_SET';
+            $tenantQuery->whereHas('rentals.room', function ($q) use ($safeDistrict) {
+                $q->where('district', $safeDistrict);
             });
         }
         $tenants = $tenantQuery->get()->sortBy('user.name');

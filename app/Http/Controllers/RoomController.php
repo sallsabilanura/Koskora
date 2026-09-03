@@ -6,6 +6,7 @@ use App\Models\Room;
 use App\Models\Asset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class RoomController extends Controller
 {
@@ -21,8 +22,8 @@ class RoomController extends Controller
         $query = Room::latest();
 
         // Scope to admin's district unless superadmin
-        if ($adminDistrict) {
-            $query->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $query->where('district', $user->district ?? 'NOT_SET');
         }
 
         if ($request->filled('search')) {
@@ -52,15 +53,15 @@ class RoomController extends Controller
             ->groupBy('district')
             ->orderBy('district');
 
-        if ($adminDistrict) {
-            $districtsQuery->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $districtsQuery->where('district', $user->district ?? 'NOT_SET');
         }
 
         $districts = $districtsQuery->get();
 
         $statsQuery = Room::query();
-        if ($adminDistrict) {
-            $statsQuery->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $statsQuery->where('district', $user->district ?? 'NOT_SET');
         }
         $stats = [
             'total'     => (clone $statsQuery)->count(),
@@ -99,8 +100,9 @@ class RoomController extends Controller
             'district' => 'required|string',
             'village' => 'required|string',
             'address' => 'required|string',
-            'description' => 'nullable|string',
             'gender' => 'required|in:putra,putri,gabungan',
+            'deposit' => 'nullable|numeric|min:0',
+            'additional_rules' => 'nullable|string',
             'assets' => 'nullable|array',
             'assets.*' => 'exists:assets,id',
             'picture' => 'nullable|array',
@@ -175,8 +177,9 @@ class RoomController extends Controller
             'district' => 'required|string',
             'village' => 'required|string',
             'address' => 'required|string',
-            'description' => 'nullable|string',
             'gender' => 'required|in:putra,putri,gabungan',
+            'deposit' => 'nullable|numeric|min:0',
+            'additional_rules' => 'nullable|string',
             'assets' => 'nullable|array',
             'assets.*' => 'exists:assets,id',
             'picture' => 'nullable|array',
@@ -219,6 +222,49 @@ class RoomController extends Controller
         }
 
         return redirect()->route('rooms.index')->with('success', 'Data kamar berhasil diperbarui.');
+    }
+
+    /**
+     * Generate a suggested room number based on the property name.
+     * e.g. "Ahmad Sadikin" -> prefix "AS", returns "AS01", "AS02", etc.
+     */
+    public function generateRoomNumber(Request $request)
+    {
+        $propertyName = $request->query('property_name', '');
+        if (!$propertyName) {
+            return response()->json(['room_number' => '']);
+        }
+
+        // Build initials from each word in the property name
+        $words  = preg_split('/\s+/', trim($propertyName));
+        $prefix = '';
+        foreach ($words as $word) {
+            $first = mb_substr($word, 0, 1);
+            $prefix .= mb_strtoupper($first);
+        }
+
+        // Scope to the current admin's district unless superadmin
+        $user  = auth()->user();
+        $query = Room::where('room_number', 'like', $prefix . '%');
+        if (!$user->isSuperAdmin() && $user->district) {
+            $query->where('district', $user->district);
+        }
+
+        $existing = $query->pluck('room_number');
+
+        // Find the highest numeric suffix among existing codes with this prefix
+        $maxNum = 0;
+        foreach ($existing as $num) {
+            $suffix = substr($num, strlen($prefix));
+            if (is_numeric($suffix)) {
+                $maxNum = max($maxNum, (int) $suffix);
+            }
+        }
+
+        $nextNum    = str_pad($maxNum + 1, 2, '0', STR_PAD_LEFT);
+        $roomNumber = $prefix . $nextNum;
+
+        return response()->json(['room_number' => $roomNumber, 'prefix' => $prefix]);
     }
 
     /**

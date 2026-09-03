@@ -13,14 +13,15 @@ class RentalController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $query = Rental::with(['tenant.user', 'room'])->latest();
 
         // Scope to admin's district via room
-        if ($adminDistrict) {
-            $query->whereHas('room', function ($q) use ($adminDistrict) {
-                $q->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $safeDistrict = $user->district ?? 'NOT_SET';
+            $query->whereHas('room', function ($q) use ($safeDistrict) {
+                $q->where('district', $safeDistrict);
             });
         }
 
@@ -50,12 +51,12 @@ class RentalController extends Controller
     public function create()
     {
         $user = auth()->user();
-        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $tenants = \App\Models\Tenants::all();
         $roomQuery = \App\Models\Room::where('status', 'available');
-        if ($adminDistrict) {
-            $roomQuery->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $roomQuery->where('district', $user->district ?? 'NOT_SET');
         }
         $rooms = $roomQuery->get();
         return view('rentals.create', compact('tenants', 'rooms'));
@@ -116,12 +117,12 @@ class RentalController extends Controller
     public function edit(Rental $rental)
     {
         $user = auth()->user();
-        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $tenants = \App\Models\Tenants::all();
         $roomQuery = \App\Models\Room::query();
-        if ($adminDistrict) {
-            $roomQuery->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $roomQuery->where('district', $user->district ?? 'NOT_SET');
         }
         $rooms = $roomQuery->get();
         return view('rentals.edit', compact('rental', 'tenants', 'rooms'));

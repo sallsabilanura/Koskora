@@ -27,6 +27,8 @@ class Room extends Model
         'discount_label',
         'discount_start',
         'discount_end',
+        'deposit',
+        'additional_rules',
     ];
 
     protected $casts = [

@@ -55,7 +55,7 @@
         </div>
 
         {{-- ===== TABLE SECTION ===== --}}
-        <div class="table-wrap">
+        <div class="table-wrap table-wrap-visible">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -117,19 +117,40 @@
                                 <span class="badge {{ $badgeCls }}">{{ strtoupper($room->status) }}</span>
                             </td>
                             <td class="text-right" data-label="Aksi">
-                                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                    <a href="{{ route('rooms.show', $room->id) }}" class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-brand hover:border-brand transition-all" title="Detail">
-                                        <i class="fas fa-eye text-xs"></i>
-                                    </a>
-                                    <a href="{{ route('rooms.edit', $room->id) }}" class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-brand hover:border-brand transition-all" title="Edit">
-                                        <i class="fas fa-edit text-xs"></i>
-                                    </a>
-                                    <form action="{{ route('rooms.destroy', $room->id) }}" method="POST" class="inline">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" onclick="return confirm('Hapus unit ini?')" class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-500 transition-all">
-                                            <i class="fas fa-trash-alt text-xs"></i>
+                                <div class="flex items-center justify-end">
+                                    <div class="relative inline-block text-left" x-data="{ open: false }" @click.outside="open = false">
+                                        <button @click="open = !open" type="button" class="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:border-slate-300 transition-all focus:outline-none">
+                                            <i class="fas fa-ellipsis-v text-xs"></i>
                                         </button>
-                                    </form>
+                                        
+                                        <div x-show="open" 
+                                             x-transition:enter="transition ease-out duration-100"
+                                             x-transition:enter-start="transform opacity-0 scale-95"
+                                             x-transition:enter-end="transform opacity-100 scale-100"
+                                             x-transition:leave="transition ease-in duration-75"
+                                             x-transition:leave-start="transform opacity-100 scale-100"
+                                             x-transition:leave-end="transform opacity-0 scale-95"
+                                             class="absolute right-0 mt-1.5 w-36 rounded-2xl bg-white border border-slate-200 shadow-xl z-50 py-1.5 text-left focus:outline-none"
+                                             style="display: none;">
+                                             
+                                             <a href="{{ route('rooms.show', $room->id) }}" class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-brand transition-colors">
+                                                 <i class="fas fa-eye w-4 text-center"></i> Detail
+                                             </a>
+                                             
+                                             <a href="{{ route('rooms.edit', $room->id) }}" class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-brand transition-colors">
+                                                 <i class="fas fa-edit w-4 text-center"></i> Ubah
+                                             </a>
+                                             
+                                             <div class="h-px bg-slate-100 my-1"></div>
+                                             
+                                             <form action="{{ route('rooms.destroy', $room->id) }}" method="POST" class="block w-full">
+                                                 @csrf @method('DELETE')
+                                                 <button type="submit" onclick="return confirm('Hapus unit ini?')" class="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors">
+                                                     <i class="fas fa-trash-alt w-4 text-center"></i> Hapus
+                                                 </button>
+                                             </form>
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
                         </tr>

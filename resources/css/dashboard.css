@@ -2,7 +2,7 @@
    KosKora — Premium SaaS Design System
    ============================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
     --sidebar-width: 280px;
@@ -59,7 +59,7 @@
 body {
     background: var(--bg);
     color: var(--text-primary);
-    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    font-family: 'Inter', -apple-system, sans-serif;
     font-size: 14px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -147,14 +147,14 @@ body {
 }
 
 .sidebar-item.active {
-    background: var(--brand);
-    color: white;
+    background: var(--brand-light);
+    color: var(--brand);
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(30, 27, 155, 0.25);
+    box-shadow: none;
 }
 
 .sidebar-item.active i {
-    color: white;
+    color: var(--brand);
 }
 
 .sidebar-section-label {
@@ -811,4 +811,17 @@ select.form-select:focus {
     font-size: 2.5rem;
     color: var(--border);
     margin-bottom: 1rem;
+}
+
+/* Dropdown table overflow and rounding fixes */
+.table-wrap-visible {
+    overflow: visible !important;
+}
+
+.data-table th:first-child {
+    border-top-left-radius: var(--radius-md) !important;
+}
+
+.data-table th:last-child {
+    border-top-right-radius: var(--radius-md) !important;
 }

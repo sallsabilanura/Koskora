@@ -34,18 +34,29 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'string', 'in:user,admin'],
         ]);
 
+        // Pencari kos (role: user) langsung aktif tanpa persetujuan admin
+        $isUserRole = $request->role === 'user';
+
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name'     => $request->name,
+            'email'    => $request->email,
             'password' => Hash::make($request->password),
+            'role'     => $request->role,
+            'status'   => $isUserRole ? 'active' : 'pending',
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(RouteServiceProvider::HOME);
+        // Pencari kos langsung ke dashboard, role lain menunggu persetujuan
+        if ($isUserRole) {
+            return redirect()->route('dashboard');
+        }
+
+        return redirect()->route('pending.approval');
     }
 }

@@ -3,31 +3,31 @@
 
     <div class="max-w-2xl mx-auto space-y-8 animate-fade-in pb-20">
         {{-- ===== SHIFT OVERVIEW ===== --}}
-        <div class="container-card !bg-slate-900 !text-white !border-none shadow-2xl relative overflow-hidden group">
+        <div class="container-card shadow-sm relative overflow-hidden group">
             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                 <div class="space-y-4">
-                    <div class="inline-flex items-center gap-2 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                    <div class="inline-flex items-center gap-2 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
                         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Petugas Aktif</span>
+                        <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Petugas Aktif</span>
                     </div>
-                    <h2 class="text-2xl font-bold tracking-tight">Selamat Bertugas,<br>{{ auth()->user()->name }}</h2>
+                    <h2 class="text-2xl font-bold tracking-tight text-slate-800">Selamat Bertugas,<br>{{ auth()->user()->name }}</h2>
                     <div class="flex gap-4">
-                        <div class="flex items-center gap-2 text-slate-400 text-xs">
+                        <div class="flex items-center gap-2 text-slate-500 text-xs font-semibold">
                             <i class="fas fa-map-marker-alt text-brand"></i>
                             {{ $todayShift->location ?? 'Area KosKora' }}
                         </div>
-                        <div class="flex items-center gap-2 text-slate-400 text-xs">
+                        <div class="flex items-center gap-2 text-slate-500 text-xs font-semibold">
                             <i class="fas fa-clock text-brand"></i>
                             {{ $todayShift->start_time ?? '--:--' }} - {{ $todayShift->end_time ?? '--:--' }}
                         </div>
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Waktu Lokal</p>
-                    <h3 id="live-clock" class="text-3xl font-black tabular-nums tracking-tighter">{{ now()->format('H:i') }}</h3>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Waktu Lokal</p>
+                    <h3 id="live-clock" class="text-3xl font-black tabular-nums tracking-tighter text-slate-800">{{ now()->format('H:i') }}</h3>
                 </div>
             </div>
-            <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-brand/10 rounded-full blur-3xl"></div>
+            <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-brand-light/40 rounded-full blur-3xl"></div>
         </div>
 
         {{-- ===== QUICK ACTIONS ===== --}}

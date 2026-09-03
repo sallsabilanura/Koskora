@@ -14,14 +14,15 @@ class TenantsController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $query = Tenants::with('user')->latest();
 
         // Scope to admin's district via tenant's room rental
-        if ($adminDistrict) {
-            $query->whereHas('rentals.room', function ($q) use ($adminDistrict) {
-                $q->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $safeDistrict = $user->district ?? 'NOT_SET';
+            $query->whereHas('rentals.room', function ($q) use ($safeDistrict) {
+                $q->where('district', $safeDistrict);
             });
         }
 

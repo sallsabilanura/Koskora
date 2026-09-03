@@ -22,6 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
+        'status',
         'district',
         'province_id',
         'province',
@@ -86,6 +87,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isSecurity()
     {
         return $this->role === 'security';
+    }
+
+    public function isPending()
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isActive()
+    {
+        return $this->status === 'active';
+    }
+
+    public function isRejected()
+    {
+        return $this->status === 'rejected';
     }
 
     public function tenant()

@@ -16,6 +16,7 @@ use App\Http\Controllers\RoomReviewController;
 use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\WithdrawalController;
 use App\Http\Controllers\AdminManagementController;
+use App\Http\Controllers\PendingApprovalController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,13 +36,20 @@ Route::get('/room/{room}', [HomeController::class, 'showRoom'])->name('room.deta
 Route::get('/rooms/{room}', [RoomController::class, 'show'])->name('rooms.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Pending Approval Page (accessible to all authenticated users)
+    Route::get('/pending-approval', [PendingApprovalController::class, 'index'])->name('pending.approval');
     
     // User Profile Completion for First-time Renters
     Route::get('/tenant/complete-profile', [BookingController::class, 'completeProfile'])->name('bookings.complete-profile');
     Route::post('/tenant/complete-profile', [BookingController::class, 'storeProfile'])->name('bookings.store-profile');
     
+    // Routes below require active account status
+    Route::middleware('check.status')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     // User/Tenant routes
+
     Route::middleware('role:user')->group(function () {
         // Booking Flow
         Route::post('/bookings/{room}/rent', [BookingController::class, 'rent'])->name('bookings.rent');
@@ -118,6 +126,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Admin & Super Admin shared routes
     Route::middleware('role:admin,superadmin')->group(function () {
+        Route::get('/rooms/generate-number', [RoomController::class, 'generateRoomNumber'])->name('rooms.generate-number');
         Route::resource('rooms', RoomController::class);
 
         Route::post('/rooms/{room}/image/delete', [RoomController::class, 'destroyImage'])->name('rooms.image.destroy');
@@ -162,7 +171,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/superadmin/admins', [AdminManagementController::class, 'index'])->name('superadmin.admins.index');
         Route::post('/superadmin/admins', [AdminManagementController::class, 'store'])->name('superadmin.admins.store');
         Route::delete('/superadmin/admins/{user}', [AdminManagementController::class, 'destroy'])->name('superadmin.admins.destroy');
+
+        // User & Admin Approval (Pending Registrations)
+        Route::get('/superadmin/approvals', [PendingApprovalController::class, 'adminIndex'])->name('superadmin.approvals.index');
+        Route::post('/superadmin/approvals/{user}/approve', [PendingApprovalController::class, 'approve'])->name('superadmin.approvals.approve');
+        Route::post('/superadmin/approvals/{user}/reject', [PendingApprovalController::class, 'reject'])->name('superadmin.approvals.reject');
     });
+
+    }); // end check.status middleware group
 });
 
 Route::middleware('auth')->group(function () {

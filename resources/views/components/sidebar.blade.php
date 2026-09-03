@@ -29,6 +29,15 @@
                 <a href="{{ route('superadmin.admins.index') }}" class="{{ request()->routeIs('superadmin.admins.*') ? 'sidebar-item active' : 'sidebar-item' }}">
                     <i class="fas fa-user-shield"></i><span>Kelola Admin Daerah</span>
                 </a>
+                {{-- Super Admin: Persetujuan Akun --}}
+                @php $pendingCount = \App\Models\User::whereIn('role', ['user', 'admin'])->where('status', 'pending')->count(); @endphp
+                <a href="{{ route('superadmin.approvals.index') }}" class="{{ request()->routeIs('superadmin.approvals.*') ? 'sidebar-item active' : 'sidebar-item' }}" style="position:relative;">
+                    <i class="fas fa-user-check"></i>
+                    <span>Persetujuan Akun</span>
+                    @if($pendingCount > 0)
+                        <span style="background:#ef4444;color:#fff;font-size:0.65rem;font-weight:700;padding:0.1rem 0.45rem;border-radius:20px;margin-left:auto;">{{ $pendingCount }}</span>
+                    @endif
+                </a>
             @endif
 
             <a href="{{ route('rooms.index') }}" class="{{ request()->routeIs('rooms.*') ? 'sidebar-item active' : 'sidebar-item' }}">

@@ -72,14 +72,15 @@ class WithdrawalController extends Controller
     public function adminIndex()
     {
         $user = auth()->user();
-        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $query = Withdrawal::with('user')->latest();
 
         // Filter withdrawals by partner's district
-        if ($adminDistrict) {
-            $query->whereHas('user', function ($q) use ($adminDistrict) {
-                $q->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $safeDistrict = $user->district ?? 'NOT_SET';
+            $query->whereHas('user', function ($q) use ($safeDistrict) {
+                $q->where('district', $safeDistrict);
             });
         }
 

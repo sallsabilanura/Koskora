@@ -118,6 +118,161 @@
                     </div>
                 @endif
 
+                {{-- Assets & Rules --}}
+                @php
+                    $groupedAssets = $room->assets->groupBy('category');
+                    $categoryTitles = [
+                        'fasilitas_kamar' => 'Fasilitas kamar',
+                        'fasilitas_kamar_mandi' => 'Fasilitas kamar mandi',
+                        'fasilitas_umum' => 'Fasilitas umum',
+                        'fasilitas_parkir' => 'Fasilitas parkir',
+                        'peraturan' => 'Peraturan di kos ini',
+                    ];
+                @endphp
+
+                @if($room->assets->count() > 0 || $room->additional_rules || $room->deposit)
+                    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden mt-6">
+                        <div class="p-8 space-y-10">
+                            
+                            @foreach($groupedAssets as $category => $categoryAssets)
+                                <div>
+                                    <h3 class="text-lg font-black text-slate-800 tracking-tight mb-5">{{ $categoryTitles[$category] ?? ucfirst(str_replace('_', ' ', $category)) }}</h3>
+                                    <div class="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-6">
+                                        @foreach($categoryAssets as $asset)
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 flex-shrink-0 border border-slate-100">
+                                                    <i class="{{ $asset->icon ?? 'fas fa-check' }} text-xs"></i>
+                                                </div>
+                                                <span class="text-sm font-semibold text-slate-700">{{ $asset->name }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            @if($room->additional_rules)
+                                <div class="pt-6 border-t border-slate-100">
+                                    <h3 class="text-lg font-black text-slate-800 tracking-tight mb-4">Peraturan khusus & Biaya Tambahan</h3>
+                                    <div id="rules-wrapper" class="relative overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 120px;">
+                                        <p id="rules-text" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line">{{ $room->additional_rules }}</p>
+                                        <div id="rules-gradient" class="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent pointer-events-none transition-opacity duration-300"></div>
+                                    </div>
+                                    <button id="rules-toggle-btn" class="hidden mt-3 text-xs font-extrabold text-brand hover:text-brand-dark transition-colors items-center gap-1">
+                                        <span>Selengkapnya</span>
+                                        <i class="fas fa-chevron-down text-[10px]"></i>
+                                    </button>
+                                </div>
+                                <script>
+                                    (function() {
+                                        const wrapper = document.getElementById('rules-wrapper');
+                                        const text = document.getElementById('rules-text');
+                                        const gradient = document.getElementById('rules-gradient');
+                                        const btn = document.getElementById('rules-toggle-btn');
+                                        
+                                        if (wrapper && text && btn) {
+                                            const initToggle = () => {
+                                                if (text.scrollHeight > 120) {
+                                                    btn.classList.remove('hidden');
+                                                    btn.classList.add('flex');
+                                                    
+                                                    // Remove any previous listener by replacing with a clone
+                                                    const newBtn = btn.cloneNode(true);
+                                                    btn.parentNode.replaceChild(newBtn, btn);
+                                                    
+                                                    let isExpanded = false;
+                                                    newBtn.addEventListener('click', function() {
+                                                        isExpanded = !isExpanded;
+                                                        if (isExpanded) {
+                                                            wrapper.style.maxHeight = text.scrollHeight + 'px';
+                                                            gradient.style.opacity = '0';
+                                                            newBtn.querySelector('span').textContent = 'Sembunyikan';
+                                                            newBtn.querySelector('i').className = 'fas fa-chevron-up text-[10px]';
+                                                        } else {
+                                                            wrapper.style.maxHeight = '120px';
+                                                            gradient.style.opacity = '1';
+                                                            newBtn.querySelector('span').textContent = 'Selengkapnya';
+                                                            newBtn.querySelector('i').className = 'fas fa-chevron-down text-[10px]';
+                                                        }
+                                                    });
+                                                } else {
+                                                    wrapper.style.maxHeight = 'none';
+                                                    gradient.style.display = 'none';
+                                                    btn.classList.add('hidden');
+                                                    btn.classList.remove('flex');
+                                                }
+                                            };
+                                            
+                                            // Initial run
+                                            initToggle();
+                                            // Run again on load to handle web fonts loading
+                                            window.addEventListener('load', initToggle);
+                                        }
+                                    })();
+                                </script>
+                            @endif
+
+                            @php
+                                $manager = \App\Models\User::where('role', 'admin')
+                                    ->where('district', $room->district)
+                                    ->first();
+                                
+                                if (!$manager) {
+                                    $manager = \App\Models\User::where('role', 'superadmin')->first();
+                                }
+                            @endphp
+
+                            @if($manager)
+                                <div class="pt-6 border-t border-slate-100 flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center font-black text-sm">
+                                            {{ strtoupper(substr($manager->name, 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kos dikelola oleh</p>
+                                            <p class="text-sm font-bold text-slate-800 mt-0.5">{{ $manager->name }}</p>
+                                        </div>
+                                    </div>
+                                    <span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-wider rounded-md border border-emerald-100 flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        Online
+                                    </span>
+                                </div>
+                            @endif
+
+                            @if($room->deposit)
+                                <div class="pt-6 border-t border-slate-100 flex items-center justify-between gap-4">
+                                    <div>
+                                        <h3 class="text-lg font-black text-slate-800 tracking-tight mb-1">Deposit</h3>
+                                        <p class="text-xs text-slate-500">Dikembalikan di akhir periode sewa jika tidak ditemukan kerusakan pada kamar.</p>
+                                    </div>
+                                    <div class="text-lg font-black text-slate-800 whitespace-nowrap">
+                                        Rp {{ number_format($room->deposit, 0, ',', '.') }}
+                                    </div>
+                                </div>
+                            @endif
+
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Location --}}
+                <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden mt-6">
+                    <div class="px-6 py-5 border-b border-slate-50">
+                        <h3 class="text-lg font-black text-slate-800 tracking-tight">Lokasi</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-brand-red/10 flex items-center justify-center flex-shrink-0 mt-1">
+                                <i class="fas fa-map-marker-alt text-brand-red"></i>
+                            </div>
+                            <div>
+                                <p class="text-base font-bold text-slate-800 capitalize mb-1">{{ $room->district }}, {{ $room->city }}</p>
+                                <p class="text-sm text-slate-500 leading-relaxed">{{ $room->address }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Reviews Section --}}
                 @php
                     $reviews = $room->reviews->sortByDesc('created_at');
@@ -228,14 +383,39 @@
                         @endif
                     </div>
 
-                    {{-- CTA --}}
-                    @if($room->status == 'available')
+                    {{-- Availability & Booking Form --}}
+                    @if($room->status != 'maintenance')
+                        {{-- Availability Info --}}
+                        <div class="mb-5 bg-blue-50/50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i class="fas fa-calendar-check text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium mb-0.5">Mulai bisa disewa</p>
+                                @if($availableDate->isPast() || $availableDate->isToday())
+                                    <p class="text-sm font-bold text-slate-800">Sekarang (Tersedia)</p>
+                                @else
+                                    <p class="text-sm font-bold text-slate-800">{{ $availableDate->translatedFormat('d F Y') }}</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Kamar sedang disewa hingga {{ $availableDate->copy()->subDay()->translatedFormat('d F Y') }}</p>
+                                @endif
+                            </div>
+                        </div>
+
                         @auth
-                            <form action="{{ route('bookings.rent', $room->id) }}" method="POST">
+                            <form action="{{ route('bookings.rent', $room->id) }}" method="POST" class="space-y-4">
                                 @csrf
+                                
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Pilih Tanggal Mulai Kos</label>
+                                    <input type="date" name="start_date" required 
+                                           min="{{ $availableDate->isPast() ? now()->format('Y-m-d') : $availableDate->format('Y-m-d') }}"
+                                           value="{{ $availableDate->isPast() ? now()->format('Y-m-d') : $availableDate->format('Y-m-d') }}"
+                                           class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-navy focus:ring-1 focus:ring-brand-navy outline-none text-sm font-bold text-slate-700 bg-slate-50">
+                                </div>
+
                                 <button type="submit" class="w-full py-4 bg-brand-navy text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-brand-red transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2">
                                     <i class="fas fa-key"></i>
-                                    Sewa Sekarang
+                                    {{ $room->status == 'occupied' ? 'Booking (Pre-order)' : 'Sewa Sekarang' }}
                                 </button>
                             </form>
                         @else
@@ -245,41 +425,12 @@
                         @endauth
                     @else
                         <button disabled class="w-full py-4 bg-slate-200 text-slate-400 rounded-xl font-black text-sm uppercase tracking-widest cursor-not-allowed">
-                            Unit Tidak Tersedia
+                            Kamar Sedang Maintenance
                         </button>
                     @endif
                 </div>
 
-                {{-- Assets --}}
-                @if($room->assets->count() > 0)
-                    <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-5">Fasilitas & Aset</h3>
-                        <div class="grid grid-cols-2 gap-3">
-                            @foreach($room->assets as $asset)
-                                <div class="flex items-center gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-100 group hover:bg-brand-navy/5 transition-colors">
-                                    <div class="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-brand-navy shadow-sm flex-shrink-0 border border-slate-100">
-                                        <i class="{{ $asset->icon ?? 'fas fa-check' }} text-[10px]"></i>
-                                    </div>
-                                    <span class="text-[11px] font-bold text-slate-600">{{ $asset->name }}</span>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
 
-                {{-- Location --}}
-                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Lokasi</h3>
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-brand-red/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <i class="fas fa-map-marker-alt text-brand-red text-sm"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold text-slate-800 capitalize">{{ $room->district }}, {{ $room->city }}</p>
-                            <p class="text-xs text-slate-400 mt-1">{{ $room->address }}</p>
-                        </div>
-                    </div>
-                </div>
 
                 {{-- Sibling Rooms --}}
                 @if($siblingRooms->count() > 0)

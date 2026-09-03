@@ -25,8 +25,11 @@ class DashboardController extends Controller
             $paymentQuery   = RentPayment::query();
             $tenantQuery    = Tenants::query();
 
-            if (!$isSuperAdmin && $district) {
-                $roomQuery->where('district', $district);
+            if (!$isSuperAdmin) {
+                // If the regional admin has no district, they should see NO data, not ALL data.
+                $safeDistrict = $district ?? 'NOT_SET';
+                
+                $roomQuery->where('district', $safeDistrict);
                 $districtRoomIds = (clone $roomQuery)->pluck('id');
                 $rentalQuery->whereIn('room_id', $districtRoomIds);
                 $paymentQuery->whereIn('room_id', $districtRoomIds);

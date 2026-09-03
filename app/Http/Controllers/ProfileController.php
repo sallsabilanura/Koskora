@@ -26,13 +26,41 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
+
+        if ($user->role === 'user') {
+            $tenant = $user->tenant ?: new \App\Models\Tenants(['user_id' => $user->id, 'status' => 'active']);
+
+            $tenantFields = [
+                'nama_lengkap', 'nama_panggilan', 'nik', 'jenis_kelamin',
+                'tempat_lahir', 'tanggal_lahir', 'nomor_whatsapp', 'alamat_ktp',
+                'address', 'rt', 'rw', 'province', 'city', 'district', 'village',
+                'occupation', 'emergency_contact'
+            ];
+
+            foreach ($tenantFields as $field) {
+                if ($request->has($field)) {
+                    $tenant->$field = $request->input($field);
+                }
+            }
+
+            if ($request->hasFile('foto_ktp')) {
+                $tenant->foto_ktp = $request->file('foto_ktp')->store('tenants/ktp', 'public');
+            }
+
+            if ($request->hasFile('foto_diri')) {
+                $tenant->foto_diri = $request->file('foto_diri')->store('tenants/self', 'public');
+            }
+
+            $tenant->save();
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

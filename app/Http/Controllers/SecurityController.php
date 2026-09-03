@@ -88,14 +88,14 @@ class SecurityController extends Controller
     public function adminIndex(Request $request)
     {
         $adminUser    = auth()->user();
-        $adminDistrict = $adminUser->isSuperAdmin() ? null : $adminUser->district;
+        $isSuperAdmin = $adminUser->isSuperAdmin();
 
         $search = $request->query('search');
         $month  = $request->query('month', now()->format('Y-m'));
 
         $securityStaff = User::where('role', 'security')
-            ->when($adminDistrict, function ($q) use ($adminDistrict) {
-                $q->where('district', $adminDistrict);
+            ->when(!$isSuperAdmin, function ($q) use ($adminUser) {
+                $q->where('district', $adminUser->district ?? 'NOT_SET');
             })
             ->when($search, function($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%');
@@ -139,16 +139,16 @@ class SecurityController extends Controller
 
         // Properties: scope to admin district if applicable
         $propertiesQuery = \App\Models\Room::select('property_name')->distinct();
-        if ($adminDistrict) {
-            $propertiesQuery->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $propertiesQuery->where('district', $adminUser->district ?? 'NOT_SET');
         }
         $properties = $propertiesQuery->pluck('property_name');
 
         // Filter attendances by month, search, and district-scoped staff
         $rawAttendances = \App\Models\SecurityAttendance::with('user')
-            ->whereHas('user', function($q) use ($search, $adminDistrict) {
+            ->whereHas('user', function($q) use ($search, $isSuperAdmin, $adminUser) {
                 if ($search) $q->where('name', 'like', '%' . $search . '%');
-                if ($adminDistrict) $q->where('district', $adminDistrict);
+                if (!$isSuperAdmin) $q->where('district', $adminUser->district ?? 'NOT_SET');
             })
             ->where('created_at', 'like', $month . '%')
             ->latest()

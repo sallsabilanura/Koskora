@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
-    public function rent(Room $room)
+    public function rent(Request $request, Room $room)
     {
         if (!Auth::check()) {
             return redirect()->route('login')->with('info', 'Please log in to rent a room.');
@@ -18,15 +18,36 @@ class BookingController extends Controller
 
         $user = Auth::user();
 
-        // Check if user is already a tenant
-        if (!$user->tenant) {
-            return redirect()->route('bookings.complete-profile', ['room_id' => $room->id]);
+        // Check if user has complete tenant profile
+        $tenant = $user->tenant;
+        $isComplete = $tenant && 
+                      $tenant->nama_lengkap && 
+                      $tenant->nama_panggilan && 
+                      $tenant->nik && 
+                      $tenant->jenis_kelamin && 
+                      $tenant->tempat_lahir && 
+                      $tenant->tanggal_lahir && 
+                      $tenant->nomor_whatsapp && 
+                      $tenant->alamat_ktp && 
+                      $tenant->address && 
+                      $tenant->rt && 
+                      $tenant->rw && 
+                      $tenant->province && 
+                      $tenant->city && 
+                      $tenant->district && 
+                      $tenant->village && 
+                      $tenant->occupation && 
+                      $tenant->emergency_contact && 
+                      $tenant->foto_ktp && 
+                      $tenant->foto_diri;
+
+        if (!$isComplete) {
+            return redirect()->route('profile.edit')->with('info', 'Silakan lengkapi data profil penyewa Anda sebelum menyewa kamar.');
         }
 
-        // If already a tenant, show confirmation page or create booking request
-        // For simplicity as requested: "otomatis juga masuk di table tenants"
-        // We will show a simple confirmation page first.
-        return view('bookings.confirm', compact('room', 'user'));
+        $startDate = $request->input('start_date', now()->format('Y-m-d'));
+
+        return view('bookings.confirm', compact('room', 'user', 'startDate'));
     }
 
     public function completeProfile(Request $request)
@@ -81,10 +102,11 @@ class BookingController extends Controller
         return redirect()->route('bookings.confirm', ['room' => $request->room_id]);
     }
 
-    public function confirm(Room $room)
+    public function confirm(Request $request, Room $room)
     {
         $user = Auth::user();
-        return view('bookings.confirm', compact('room', 'user'));
+        $startDate = $request->input('start_date', now()->format('Y-m-d'));
+        return view('bookings.confirm', compact('room', 'user', 'startDate'));
     }
 
     public function store(Request $request, Room $room)
@@ -93,10 +115,11 @@ class BookingController extends Controller
         
         $request->validate([
             'duration_type' => 'required|in:monthly,yearly',
+            'start_date' => 'required|date',
         ]);
 
         $durationType = $request->input('duration_type', 'monthly');
-        $startDate = now();
+        $startDate = \Carbon\Carbon::parse($request->input('start_date'));
         $monthlyPrice = $room->price;
 
         if ($durationType === 'yearly') {

@@ -20,15 +20,16 @@ class CleaningController extends Controller
     public function adminIndex()
     {
         $user = auth()->user();
-        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $cleanersQuery  = Cleaner::with('user');
         $packagesQuery  = CleaningPackage::query();
         $ordersQuery    = CleaningOrder::with(['user.tenant.rentals.room', 'package', 'cleaner.user']);
 
-        if ($adminDistrict) {
-            $cleanersQuery->whereHas('user', function ($q) use ($adminDistrict) {
-                $q->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $safeDistrict = $user->district ?? 'NOT_SET';
+            $cleanersQuery->whereHas('user', function ($q) use ($safeDistrict) {
+                $q->where('district', $safeDistrict);
             });
             $cleanerIds = (clone $cleanersQuery)->pluck('id');
             $ordersQuery->whereIn('cleaner_id', $cleanerIds);

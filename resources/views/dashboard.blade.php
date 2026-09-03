@@ -127,16 +127,16 @@
                 <div class="px-2">
                     <h3 class="text-lg font-800 text-slate-800 tracking-tight">System Info</h3>
                 </div>
-                <div class="stat-card bg-brand border-none text-white overflow-hidden">
+                <div class="stat-card overflow-hidden">
                     <div class="relative z-10">
-                        <div class="text-white/80 text-xs font-bold uppercase tracking-widest mb-1">Active Broadcasts</div>
-                        <div class="text-3xl font-800 mb-4">{{ $announcementsCount }}</div>
-                        <a href="{{ route('admin.announcements.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold transition-colors">
+                        <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Active Broadcasts</div>
+                        <div class="text-3xl font-800 text-slate-800 mb-4">{{ $announcementsCount }}</div>
+                        <a href="{{ route('admin.announcements.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-brand-light hover:bg-brand/10 rounded-xl text-sm font-bold text-brand transition-colors">
                             Manage Info <i class="fas fa-arrow-right text-[10px]"></i>
                         </a>
                     </div>
                     {{-- Decorative Circle --}}
-                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-brand-light/40 rounded-full blur-2xl"></div>
                 </div>
 
                 <div class="stat-card border-dashed border-2 flex items-center justify-center py-10 group cursor-pointer hover:bg-slate-50 transition-colors">

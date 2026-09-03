@@ -49,7 +49,15 @@
 
                     <div class="space-y-2">
                         <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Nomor Kamar</label>
-                        <input type="text" name="room_number" placeholder="Contoh: A01" value="{{ old('room_number') }}">
+                        <div class="flex gap-2 items-center">
+                            <input type="text" name="room_number" id="room_number_input" placeholder="Contoh: AS01" value="{{ old('room_number') }}" class="flex-1">
+                            <button type="button" id="generate_room_number_btn"
+                                title="Generate otomatis dari nama properti"
+                                class="flex-shrink-0 w-11 h-11 rounded-xl bg-brand-light text-brand hover:bg-brand hover:text-white transition-all duration-200 flex items-center justify-center shadow-sm">
+                                <i class="fas fa-magic text-sm" id="generate_icon"></i>
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-slate-400 ml-1" id="room_number_hint">Klik <i class="fas fa-magic"></i> untuk generate otomatis dari nama properti.</p>
                     </div>
 
                     <div class="space-y-2">
@@ -63,6 +71,15 @@
                             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-extrabold text-sm">Rp</span>
                             <input type="number" name="price" placeholder="0" value="{{ old('price') }}">
                         </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Deposit (Opsional)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-extrabold text-sm">Rp</span>
+                            <input type="number" name="deposit" placeholder="0" value="{{ old('deposit') }}">
+                        </div>
+                        <p class="text-[10px] text-slate-400 ml-1">Kosongkan jika tidak ada deposit.</p>
                     </div>
 
                     <div class="space-y-2">
@@ -110,24 +127,44 @@
                         <i class="fas fa-couch"></i>
                     </div>
                 </div>
-                <div class="p-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-                    @foreach($assets as $asset)
-                        <label class="relative group cursor-pointer">
-                            <input type="checkbox" name="assets[]" value="{{ $asset->id }}" class="peer hidden" 
-                                   {{ is_array(old('assets')) && in_array($asset->id, old('assets')) ? 'checked' : '' }}>
-                            <div class="p-5 rounded-2xl border-2 border-slate-100 bg-white peer-checked:border-brand peer-checked:bg-brand-light/30 transition-all flex flex-col items-center text-center gap-3">
-                                <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 peer-checked:text-brand peer-checked:bg-white peer-checked:shadow-sm transition-all">
-                                    <i class="{{ $asset->icon ?: 'fas fa-check' }} text-lg"></i>
+                <div class="p-8">
+                    @php
+                        $groupedAssets = collect($assets)->groupBy('category');
+                        $categoryTitles = [
+                            'fasilitas_kamar' => 'Fasilitas Kamar',
+                            'fasilitas_kamar_mandi' => 'Fasilitas Kamar Mandi',
+                            'fasilitas_umum' => 'Fasilitas Umum',
+                            'fasilitas_parkir' => 'Fasilitas Parkir',
+                            'peraturan' => 'Peraturan Kos/Kamar',
+                        ];
+                    @endphp
+
+                    <div class="space-y-8">
+                        @foreach($groupedAssets as $category => $categoryAssets)
+                            <div>
+                                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{{ $categoryTitles[$category] ?? ucfirst(str_replace('_', ' ', $category)) }}</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    @foreach($categoryAssets as $asset)
+                                        <label class="relative group cursor-pointer">
+                                            <input type="checkbox" name="assets[]" value="{{ $asset->id }}" class="peer hidden" 
+                                                   {{ is_array(old('assets')) && in_array($asset->id, old('assets')) ? 'checked' : '' }}>
+                                            <div class="p-5 rounded-2xl border-2 border-slate-100 bg-white peer-checked:border-brand peer-checked:bg-brand-light/30 transition-all flex flex-col items-center text-center gap-3 hover:border-slate-200">
+                                                <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 peer-checked:text-brand peer-checked:bg-white peer-checked:shadow-sm transition-all group-hover:scale-110">
+                                                    <i class="{{ $asset->icon ?: 'fas fa-check' }} text-lg"></i>
+                                                </div>
+                                                <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest group-hover:text-brand transition-colors">{{ $asset->name }}</span>
+                                            </div>
+                                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                                <div class="w-5 h-5 bg-brand text-white rounded-full flex items-center justify-center shadow-md">
+                                                    <i class="fas fa-check text-[8px]"></i>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    @endforeach
                                 </div>
-                                <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest group-hover:text-brand transition-colors">{{ $asset->name }}</span>
                             </div>
-                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
-                                <div class="w-5 h-5 bg-brand text-white rounded-full flex items-center justify-center shadow-md">
-                                    <i class="fas fa-check text-[8px]"></i>
-                                </div>
-                            </div>
-                        </label>
-                    @endforeach
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
@@ -166,14 +203,18 @@
                             </select>
                         </div>
                     </div>
-                    <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Alamat Lengkap</label>
                             <textarea name="address" rows="2" placeholder="Jl. Merdeka No. 123...">{{ old('address', auth()->user()->address) }}</textarea>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Deskripsi Tambahan</label>
-                            <textarea name="description" rows="4" placeholder="Detail spesifik kamar...">{{ old('description') }}</textarea>
+                            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Deskripsi Tentang Kos/Kamar</label>
+                            <textarea name="description" rows="2" placeholder="Detail spesifik kamar...">{{ old('description') }}</textarea>
+                        </div>
+                        <div class="md:col-span-2 space-y-2">
+                            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Peraturan Khusus & Biaya Tambahan</label>
+                            <textarea name="additional_rules" rows="3" placeholder="Contoh: Tamu menginap Rp50.000, Tambah elektronik Rp50.000/item">{{ old('additional_rules') }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -405,5 +446,44 @@
             fileQueue = newQueue; fileInput.files = fileQueue.files;
             btn.closest('div.aspect-square').remove();
         }
+        // ── AUTO-GENERATE ROOM NUMBER ──────────────────────────────────────
+        const propertyNameInput  = document.getElementById('property_name_input');
+        const roomNumberInput    = document.getElementById('room_number_input');
+        const generateBtn        = document.getElementById('generate_room_number_btn');
+        const generateIcon       = document.getElementById('generate_icon');
+        const roomNumberHint     = document.getElementById('room_number_hint');
+        const generateUrl        = '{{ route("rooms.generate-number") }}';
+
+        async function fetchRoomNumber(propertyName) {
+            if (!propertyName.trim()) return;
+            generateIcon.className = 'fas fa-spinner fa-spin text-sm';
+            try {
+                const res  = await fetch(generateUrl + '?property_name=' + encodeURIComponent(propertyName));
+                const data = await res.json();
+                if (data.room_number) {
+                    roomNumberInput.value = data.room_number;
+                    roomNumberHint.innerHTML = `<span class="text-brand font-bold"><i class="fas fa-check-circle"></i> Nomor kamar: <strong>${data.room_number}</strong> (awalan: ${data.prefix})</span>`;
+                }
+            } catch(e) {
+                roomNumberHint.innerHTML = '<span class="text-red-400">Gagal generate nomor kamar.</span>';
+            } finally {
+                generateIcon.className = 'fas fa-magic text-sm';
+            }
+        }
+
+        generateBtn.addEventListener('click', function() {
+            fetchRoomNumber(propertyNameInput.value);
+        });
+
+        // Also auto-generate when the user finishes typing / selects from datalist
+        let debounceTimer;
+        propertyNameInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => fetchRoomNumber(this.value), 600);
+        });
+        propertyNameInput.addEventListener('change', function() {
+            clearTimeout(debounceTimer);
+            fetchRoomNumber(this.value);
+        });
     </script>
 </x-app-layout>

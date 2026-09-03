@@ -1,21 +1,22 @@
 <x-app-layout>
     @section('header_title', 'Edit Room')
 
-    <div class="max-w-4xl mx-auto space-y-8">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Edit Kamar</h2>
-                <p class="text-slate-500 text-sm mt-1 font-medium">Ubah detail unit #{{ $room->room_number }} untuk menyesuaikan informasi terbaru.</p>
+    <div class="max-w-4xl mx-auto space-y-8 animate-fade-in">
+        {{-- ===== PAGE HEADER ===== --}}
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Edit Kamar #{{ $room->room_number }}</h2>
+                <p class="text-slate-500 font-medium text-sm">Ubah detail unit untuk menyesuaikan informasi terbaru.</p>
             </div>
-            <a href="{{ route('rooms.index') }}" class="inline-flex items-center justify-center px-6 py-3 bg-white border border-slate-200 rounded-2xl font-bold text-xs text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm active:scale-95">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            <a href="{{ route('rooms.index') }}" class="btn btn-ghost !h-11">
+                <i class="fas fa-arrow-left text-xs"></i>
                 Kembali
             </a>
         </div>
 
         @if ($errors->any())
-            <div class="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl shadow-sm">
-                <ul class="list-disc list-inside text-sm font-bold">
+            <div class="p-4 bg-red-50 border border-red-100 rounded-2xl">
+                <ul class="list-disc list-inside text-sm font-bold text-red-500">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -24,196 +25,255 @@
         @endif
 
         @if ($message = Session::get('success'))
-            <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl flex items-center shadow-sm">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                {{ $message }}
+            <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-sm font-bold text-emerald-600 flex items-center">
+                <i class="fas fa-check-circle mr-2"></i> {{ $message }}
             </div>
         @endif
 
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 md:p-12">
-            <form action="{{ route('rooms.update', $room->id) }}" method="POST" enctype="multipart/form-data" class="space-y-10" id="room-form">
-                @csrf
-                @method('PUT')
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Property Name -->
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Nama Properti / Kos</label>
-                        <input type="text" name="property_name" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold" placeholder="Contoh: Kos Kalibata City, Kos Tebet Indah..." value="{{ old('property_name', $room->property_name) }}">
-                        <p class="text-xs text-slate-400 mt-1.5">Nama properti digunakan untuk mengelompokkan kamar di halaman utama.</p>
+        <form action="{{ route('rooms.update', $room->id) }}" method="POST" enctype="multipart/form-data" id="room-form" class="space-y-8">
+            @csrf
+            @method('PUT')
+            
+            {{-- SECTION 1: BASIC INFO --}}
+            <div class="stat-card !p-0 overflow-hidden">
+                <div class="px-8 py-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Informasi Dasar</h3>
+                    <div class="w-8 h-8 rounded-lg bg-brand-light text-brand flex items-center justify-center text-xs">
+                        <i class="fas fa-info"></i>
+                    </div>
+                </div>
+                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Properti / Kos</label>
+                        <input type="text" name="property_name" value="{{ old('property_name', $room->property_name) }}" placeholder="Contoh: Kos Kalibata City">
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">No Kamar</label>
-                        <input type="text" name="room_number" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold" value="{{ old('room_number', $room->room_number) }}">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Nomor Kamar</label>
+                        <input type="text" name="room_number" placeholder="Contoh: A01" value="{{ old('room_number', $room->room_number) }}">
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Tipe Kamar</label>
-                        <input type="text" name="room_type" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold" value="{{ old('room_type', $room->room_type) }}">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipe Kamar</label>
+                        <input type="text" name="room_type" placeholder="Contoh: Deluxe" value="{{ old('room_type', $room->room_type) }}">
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Harga Sewa (Rp / Bulan)</label>
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Harga Sewa (Bulan)</label>
                         <div class="relative">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">Rp</span>
-                            <input type="number" name="price" class="w-full pl-12 rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-black text-slate-700" value="{{ old('price', $room->price) }}">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-extrabold text-sm">Rp</span>
+                            <input type="number" name="price" placeholder="0" value="{{ old('price', $room->price) }}">
                         </div>
                     </div>
 
-                    <!-- Discount Group -->
-                    <div class="md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-slate-50/50 rounded-3xl border border-slate-100">
-                        <div class="col-span-2 md:col-span-1">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Diskon (%)</label>
-                            <input type="number" name="discount_percentage" class="w-full rounded-2xl border-slate-200" value="{{ old('discount_percentage', $room->discount_percentage) }}">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Deposit (Opsional)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-extrabold text-sm">Rp</span>
+                            <input type="number" name="deposit" placeholder="0" value="{{ old('deposit', $room->deposit) }}">
                         </div>
-                        <div class="col-span-2 md:col-span-1">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Label Diskon</label>
-                            <input type="text" name="discount_label" class="w-full rounded-2xl border-slate-200" value="{{ old('discount_label', $room->discount_label) }}">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Tgl Mulai</label>
-                            <input type="date" name="discount_start" class="w-full rounded-2xl border-slate-200" value="{{ old('discount_start', $room->discount_start ? $room->discount_start->format('Y-m-d') : '') }}">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Tgl Selesai</label>
-                            <input type="date" name="discount_end" class="w-full rounded-2xl border-slate-200" value="{{ old('discount_end', $room->discount_end ? $room->discount_end->format('Y-m-d') : '') }}">
-                        </div>
+                        <p class="text-[10px] text-slate-400 ml-1">Kosongkan jika tidak ada deposit.</p>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Status Kamar</label>
-                        <select name="status" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold text-slate-600">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Kategori Gender</label>
+                        <select name="gender">
+                            <option value="gabungan" {{ old('gender', $room->gender) == 'gabungan' ? 'selected' : '' }}>Gabungan</option>
+                            <option value="putra" {{ old('gender', $room->gender) == 'putra' ? 'selected' : '' }}>Putra</option>
+                            <option value="putri" {{ old('gender', $room->gender) == 'putri' ? 'selected' : '' }}>Putri</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Status Kamar</label>
+                        <select name="status">
                             <option value="available" {{ old('status', $room->status) == 'available' ? 'selected' : '' }}>Available</option>
                             <option value="occupied" {{ old('status', $room->status) == 'occupied' ? 'selected' : '' }}>Occupied</option>
                             <option value="maintenance" {{ old('status', $room->status) == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
                         </select>
                     </div>
-
-                    <!-- Gender Category -->
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Kategori Gender</label>
-                        <select name="gender" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold text-slate-600">
-                            <option value="gabungan" {{ old('gender', $room->gender) == 'gabungan' ? 'selected' : '' }}>Gabungan (Putra/Putri)</option>
-                            <option value="putra" {{ old('gender', $room->gender) == 'putra' ? 'selected' : '' }}>Khusus Putra</option>
-                            <option value="putri" {{ old('gender', $room->gender) == 'putri' ? 'selected' : '' }}>Khusus Putri</option>
-                        </select>
-                    </div>
                 </div>
 
-                <!-- Room Assets -->
-                <div class="pt-8 border-t border-slate-100">
-                    <label class="block text-sm font-bold text-slate-700 mb-4">Aset & Fasilitas Kamar</label>
+                {{-- PRICING PROMO --}}
+                <div class="px-8 py-8 bg-slate-50/50 border-t border-slate-100">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-2 rounded-full bg-red-400"></div>
+                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest">Pricing & Promo (Opsional)</h4>
+                    </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        @php
-                            $roomAssetIds = $room->assets->pluck('id')->toArray();
-                        @endphp
-                        @foreach($assets as $asset)
-                            <label class="relative group cursor-pointer">
-                                <input type="checkbox" name="assets[]" value="{{ $asset->id }}" class="peer hidden" {{ in_array($asset->id, old('assets', $roomAssetIds)) ? 'checked' : '' }}>
-                                <div class="p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all hover:border-slate-200 flex flex-col items-center text-center space-y-2">
-                                    <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        @if($asset->icon)
-                                            <i class="{{ $asset->icon }} text-lg"></i>
-                                        @else
-                                            <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                                        @endif
-                                    </div>
-                                    <span class="text-xs font-bold uppercase tracking-tight">{{ $asset->name }}</span>
+                        <div class="col-span-2 md:col-span-1 space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Diskon (%)</label>
+                            <input type="number" name="discount_percentage" placeholder="0" value="{{ old('discount_percentage', $room->discount_percentage) }}">
+                        </div>
+                        <div class="col-span-2 md:col-span-1 space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Label Promo</label>
+                            <input type="text" name="discount_label" placeholder="Promo" value="{{ old('discount_label', $room->discount_label) }}">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tgl Mulai</label>
+                            <input type="date" name="discount_start" value="{{ old('discount_start', $room->discount_start ? $room->discount_start->format('Y-m-d') : '') }}">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tgl Selesai</label>
+                            <input type="date" name="discount_end" value="{{ old('discount_end', $room->discount_end ? $room->discount_end->format('Y-m-d') : '') }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- SECTION 2: ASSETS & FACILITIES --}}
+            <div class="stat-card !p-0 overflow-hidden">
+                <div class="px-8 py-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Aset & Fasilitas</h3>
+                    <div class="w-8 h-8 rounded-lg bg-brand-light text-brand flex items-center justify-center text-xs">
+                        <i class="fas fa-couch"></i>
+                    </div>
+                </div>
+                <div class="p-8">
+                    @php
+                        $roomAssetIds = $room->assets->pluck('id')->toArray();
+                        $groupedAssets = collect($assets)->groupBy('category');
+                        $categoryTitles = [
+                            'fasilitas_kamar' => 'Fasilitas Kamar',
+                            'fasilitas_kamar_mandi' => 'Fasilitas Kamar Mandi',
+                            'fasilitas_umum' => 'Fasilitas Umum',
+                            'fasilitas_parkir' => 'Fasilitas Parkir',
+                            'peraturan' => 'Peraturan Kos/Kamar',
+                        ];
+                    @endphp
+
+                    <div class="space-y-8">
+                        @foreach($groupedAssets as $category => $categoryAssets)
+                            <div>
+                                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{{ $categoryTitles[$category] ?? ucfirst(str_replace('_', ' ', $category)) }}</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    @foreach($categoryAssets as $asset)
+                                        <label class="relative group cursor-pointer">
+                                            <input type="checkbox" name="assets[]" value="{{ $asset->id }}" class="peer hidden" 
+                                                   {{ in_array($asset->id, old('assets', $roomAssetIds)) ? 'checked' : '' }}>
+                                            <div class="p-5 rounded-2xl border-2 border-slate-100 bg-white peer-checked:border-brand peer-checked:bg-brand-light/30 transition-all flex flex-col items-center text-center gap-3 hover:border-slate-200">
+                                                <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 peer-checked:text-brand peer-checked:bg-white peer-checked:shadow-sm transition-all group-hover:scale-110">
+                                                    <i class="{{ $asset->icon ?: 'fas fa-check' }} text-lg"></i>
+                                                </div>
+                                                <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest group-hover:text-brand transition-colors">{{ $asset->name }}</span>
+                                            </div>
+                                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                                <div class="w-5 h-5 bg-brand text-white rounded-full flex items-center justify-center shadow-md">
+                                                    <i class="fas fa-check text-[8px]"></i>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    @endforeach
                                 </div>
-                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
-                                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                                </div>
-                            </label>
+                            </div>
                         @endforeach
                     </div>
                 </div>
+            </div>
 
-                <!-- Location Selector -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-slate-100">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Provinsi</label>
-                        <select id="province-select" name="province_id" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold text-slate-600">
-                            <option value="">{{ $room->province ?: 'Pilih Provinsi' }}</option>
-                        </select>
-                        <input type="hidden" name="province" id="province-name" value="{{ $room->province }}">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Kota / Kabupaten</label>
-                        <select id="city-select" name="city_id" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold text-slate-600">
-                            <option value="">{{ $room->city ?: 'Pilih Kota/Kabupaten' }}</option>
-                        </select>
-                        <input type="hidden" name="city" id="city-name" value="{{ $room->city }}">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Kecamatan</label>
-                        <select id="district-select" name="district_id" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold text-slate-600">
-                            <option value="">{{ $room->district ?: 'Pilih Kecamatan' }}</option>
-                        </select>
-                        <input type="hidden" name="district" id="district-name" value="{{ $room->district }}">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Kelurahan / Desa</label>
-                        <select id="village-select" name="village_id" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold text-slate-600">
-                            <option value="">{{ $room->village ?: 'Pilih Kelurahan/Desa' }}</option>
-                        </select>
-                        <input type="hidden" name="village" id="village-name" value="{{ $room->village }}">
+            {{-- SECTION 3: LOCATION --}}
+            <div class="stat-card !p-0 overflow-hidden">
+                <div class="px-8 py-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Lokasi Properti</h3>
+                    <div class="w-8 h-8 rounded-lg bg-brand-light text-brand flex items-center justify-center text-xs">
+                        <i class="fas fa-map-marker-alt"></i>
                     </div>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Alamat Lengkap Kamar (Jalan, No Rumah, dll)</label>
-                    <textarea name="address" rows="3" class="w-full rounded-2xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all font-medium text-slate-700">{{ old('address', $room->address) }}</textarea>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Deskripsi & Fasilitas</label>
-                    <textarea name="description" rows="5" class="w-full rounded-3xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all">{{ old('description', $room->description) }}</textarea>
-                </div>
-
-                <!-- Picture / Gallery -->
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-sm font-bold text-slate-700">Gallery Kamar</label>
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">Tambah atau Hapus Foto</span>
+                <div class="p-8 space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Provinsi</label>
+                            <select id="province-select" name="province_id">
+                                <option value="">{{ $room->province ?: 'Pilih Provinsi' }}</option>
+                            </select>
+                            <input type="hidden" name="province" id="province-name" value="{{ $room->province }}">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Kota / Kabupaten</label>
+                            <select id="city-select" name="city_id">
+                                <option value="">{{ $room->city ?: 'Pilih Kota/Kabupaten' }}</option>
+                            </select>
+                            <input type="hidden" name="city" id="city-name" value="{{ $room->city }}">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Kecamatan</label>
+                            <select id="district-select" name="district_id">
+                                <option value="">{{ $room->district ?: 'Pilih Kecamatan' }}</option>
+                            </select>
+                            <input type="hidden" name="district" id="district-name" value="{{ $room->district }}">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Kelurahan / Desa</label>
+                            <select id="village-select" name="village_id">
+                                <option value="">{{ $room->village ?: 'Pilih Kelurahan/Desa' }}</option>
+                            </select>
+                            <input type="hidden" name="village" id="village-name" value="{{ $room->village }}">
+                        </div>
                     </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Alamat Lengkap</label>
+                            <textarea name="address" rows="2" placeholder="Jl. Merdeka No. 123...">{{ old('address', $room->address) }}</textarea>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Deskripsi Tentang Kos/Kamar</label>
+                            <textarea name="description" rows="2" placeholder="Detail spesifik kamar...">{{ old('description', $room->description) }}</textarea>
+                        </div>
+                        <div class="md:col-span-2 space-y-2">
+                            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Peraturan Khusus & Biaya Tambahan</label>
+                            <textarea name="additional_rules" rows="3" placeholder="Contoh: Tamu menginap Rp50.000, Tambah elektronik Rp50.000/item">{{ old('additional_rules', $room->additional_rules) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            {{-- SECTION 4: GALLERY --}}
+            <div class="stat-card !p-0 overflow-hidden">
+                <div class="px-8 py-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Foto Unit Kamar</h3>
+                    <div class="w-8 h-8 rounded-lg bg-brand-light text-brand flex items-center justify-center text-xs">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                </div>
+                <div class="p-8">
                     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4" id="gallery-container">
                         <!-- Existing Photos -->
                         @if($room->picture)
                             @foreach($room->picture as $img)
-                                <div class="relative aspect-square rounded-3xl border border-slate-100 bg-white shadow-sm overflow-hidden group">
+                                <div class="relative aspect-square rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden group">
                                     <img src="{{ asset('storage/' . $img) }}" class="w-full h-full object-cover">
-                                    <div class="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <button type="button" onclick="confirmDeleteImage('{{ $img }}')" class="p-2 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors shadow-lg">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <button type="button" onclick="confirmDeleteImage('{{ $img }}')" class="w-8 h-8 bg-red-500 text-white rounded-lg shadow-lg">
+                                            <i class="fas fa-times text-[10px]"></i>
                                         </button>
                                     </div>
-                                    <span class="absolute top-2 left-2 bg-white/80 backdrop-blur px-2 py-0.5 rounded-lg text-[8px] font-black uppercase text-slate-500">Stored</span>
+                                    <span class="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded-lg text-[8px] font-black uppercase text-slate-500">Tersimpan</span>
                                 </div>
                             @endforeach
                         @endif
 
-                        <!-- Dropzone for New Photos -->
-                        <div id="dropzone" class="aspect-square rounded-3xl border-4 border-dashed border-slate-100 bg-slate-50 flex flex-col items-center justify-center cursor-pointer hover:bg-white hover:border-blue-400 transition-all group overflow-hidden relative">
+                        <!-- Dropzone -->
+                        <div id="dropzone" class="aspect-square rounded-2xl border-2 border-dashed border-slate-200 bg-white flex flex-col items-center justify-center cursor-pointer hover:border-brand hover:bg-brand-light/10 transition-all group relative overflow-hidden">
                             <input id="file-upload" name="picture[]" type="file" class="absolute inset-0 opacity-0 cursor-pointer" multiple onchange="handleQueueFiles(event)">
-                            <div class="text-center group-hover:scale-110 transition-transform pointer-events-none">
-                                <svg class="w-8 h-8 mx-auto text-slate-300 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                <span class="text-[10px] font-black text-slate-400 mt-2 block group-hover:text-blue-600 uppercase tracking-tighter">Tambah Foto</span>
+                            <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-brand transition-all mb-2 shadow-sm">
+                                <i class="fas fa-plus text-sm"></i>
                             </div>
+                            <span class="text-[10px] font-black text-slate-400 group-hover:text-brand uppercase tracking-widest">Tambah Foto</span>
                         </div>
                     </div>
-                    <p class="text-xs text-slate-400 italic">Klik berkali-kali untuk menumpuk foto baru. Klik (X) pada foto baru jika ingin membatalkan sebelum Update.</p>
                 </div>
+            </div>
 
-                <div class="pt-8 border-t border-slate-50 flex items-center justify-between gap-4">
-                    <button type="submit" class="flex-1 py-5 bg-brand-blue text-white rounded-3xl font-black text-lg hover:bg-brand-red shadow-xl shadow-brand-blue/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center space-x-3">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        <span>SIMPAN PERUBAHAN</span>
-                    </button>
-                </div>
-            </form>
-        </div>
+            {{-- SUBMIT BUTTON --}}
+            <div class="flex items-center justify-end gap-4 pb-12">
+                <a href="{{ route('rooms.index') }}" class="px-8 py-4 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">Batal</a>
+                <button type="submit" class="px-10 py-5 bg-brand text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-brand-dark transition-all transform active:scale-[0.98] shadow-xl shadow-brand/20">
+                    <i class="fas fa-save mr-2"></i>
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
     </div>
 
     <!-- Hidden Delete Form -->

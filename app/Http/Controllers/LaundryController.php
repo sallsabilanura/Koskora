@@ -20,15 +20,16 @@ class LaundryController extends Controller
     public function adminIndex()
     {
         $user = auth()->user();
-        $adminDistrict = $user->isSuperAdmin() ? null : $user->district;
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $laundriesQuery = Laundry::with('user');
         $ordersQuery    = LaundryOrder::with(['user.tenant.rentals.room', 'laundry']);
         $servicesQuery  = LaundryService::with('laundry');
 
-        if ($adminDistrict) {
-            $laundriesQuery->whereHas('user', function ($q) use ($adminDistrict) {
-                $q->where('district', $adminDistrict);
+        if (!$isSuperAdmin) {
+            $safeDistrict = $user->district ?? 'NOT_SET';
+            $laundriesQuery->whereHas('user', function ($q) use ($safeDistrict) {
+                $q->where('district', $safeDistrict);
             });
             $laundriesIds = (clone $laundriesQuery)->pluck('id');
             $ordersQuery->whereIn('laundry_id', $laundriesIds);

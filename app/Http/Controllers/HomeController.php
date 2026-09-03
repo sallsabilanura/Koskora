@@ -161,6 +161,13 @@ class HomeController extends Controller
                 ->get();
         }
 
-        return view('room_detail', compact('room', 'siblingRooms'));
+        // Determine available date
+        $activeRental = \App\Models\Rental::where('room_id', $room->id)
+            ->where('status', 'active')
+            ->latest('end_date')
+            ->first();
+        $availableDate = $activeRental ? \Carbon\Carbon::parse($activeRental->end_date)->addDay() : now();
+
+        return view('room_detail', compact('room', 'siblingRooms', 'availableDate'));
     }
 }
